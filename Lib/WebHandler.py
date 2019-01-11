@@ -184,6 +184,7 @@ class WebHandler(tornado.web.RequestHandler):
         result = getCAForUsername(self.__credDict['username'])
         if result['OK']:
           self.__credDict['issuer'] = result['Value'][0]
+
         return
 
     # Type of Auth
@@ -204,19 +205,21 @@ class WebHandler(tornado.web.RequestHandler):
     if Conf.balancer() == "nginx":
       headers = self.request.headers
       if headers['X-Scheme'] == "https" and headers['X-Ssl_client_verify'] == 'SUCCESS':
-        DN = headers['X-Ssl_client_s_dn']
+        DN = headers['X-Ssl_client_s_dn']        
         if not DN.startswith('/'):
           items = DN.split(',')
           items.reverse()
           DN = '/' + '/'.join(items)
-        self.__credDict['DN'] = DN
         self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
         result = Registry.getUsernameForDN(DN)
-        if not result['OK']:
-          self.__credDict['validDN'] = False
-        else:
+        if result['OK']:
+          self.__credDict['DN'] = DN
           self.__credDict['validDN'] = True
           self.__credDict['username'] = result['Value']
+        elif self.isTrustedHost(DN):
+          self.__credDict['DN'] = DN
+        else:
+          self.__credDict['validDN'] = False
       return
 
     # TORNADO
