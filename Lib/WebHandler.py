@@ -25,10 +25,8 @@ from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
 
-try:
-  from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import gSessionManager
-except ImportError:
-  pass
+from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerData import gOAuthManagerData
+
 
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
@@ -161,10 +159,7 @@ class WebHandler(tornado.web.RequestHandler):
     if not self.__session:
       return S_ERROR('No found session in cookies.')
 
-    try:
-      result = gSessionManager.getIDForSession(self.__session)
-    except Exception as e:
-      return S_ERROR('AuthManager extension absent:', e)
+    result = gOAuthManagerData.getIDForSession(self.__session)
     if not result['OK']:
       self.set_cookie(self.__idp, '')
     else:
