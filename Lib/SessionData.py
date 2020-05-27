@@ -159,8 +159,8 @@ class SessionData(object):
             'extensions': self.__extensions,
             'extVersion': self.getExtJSVersion()}
     # Add valid groups if known
-    username = self.__credDict.get("username", "")
-    if username and username != 'anonymous':
+    username = self.__credDict.get("username", "anonymous")
+    if username != 'anonymous':
       result = Registry.getGroupsStatusByUsername(username)  # pylint: disable=no-member
       if result['OK']:
         data['validGroups'] = result['Value'].keys()
