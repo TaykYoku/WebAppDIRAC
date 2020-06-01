@@ -55,9 +55,9 @@ class AuthenticationHandler(WebHandler):
       if not gSessionManager:
         result = S_ERROR('Not session manager found.')
         break
-      result = gSessionManager.getSessionStatus(session)
+      result = yield self.threadTask(gSessionManager.getSessionStatus, session)
       if not result['OK']:
-        break
+        raise WErr(500, result['Message'])
       status = result['Value']['Status']
       gLogger.verbose('%s session' % session, status)
       if status not in ['prepared','in progress','finishing', 'redirect']:
@@ -68,7 +68,7 @@ class AuthenticationHandler(WebHandler):
       time.sleep(5)
 
     if not result['OK']:
-      gSessionManager.killSession(session)
+      yield self.threadTask(gSessionManager.killSession, session)
       self.log.error(session, 'session, %s ' % result['Message'])
     else:
       self.log.verbose(session, 'session, authentication status: %s' % status)
@@ -86,6 +86,8 @@ class AuthenticationHandler(WebHandler):
     """
     result = S_OK({'Action': 'reload'})
     typeAuth = str(self.request.arguments["typeauth"][0])
+    session = self.get_cookie(typeAuth)
+
     if typeAuth == 'Log out':
       self.clear_all_cookies()
       self.set_cookie("TypeAuth", 'Visitor')
@@ -93,12 +95,11 @@ class AuthenticationHandler(WebHandler):
     elif typeAuth == 'Certificate':
       self.set_cookie("TypeAuth", typeAuth)
 
-    elif not gSessionManager:
-      result = S_ERROR('Not session manager found.')
-
     else:
-      result = gSessionManager.submitAuthorizeFlow(typeAuth, self.get_cookie(typeAuth))
-      if result['OK']:
+      result = gSessionManager.submitAuthorizeFlow(typeAuth, session)
+      if not result['OK']:
+        self.clear_cookie(typeAuth)
+      else:
         if result['Value']['Status'] == 'ready':
           self.set_cookie("TypeAuth", typeAuth)
           result['Value']['Action'] = 'reload'
