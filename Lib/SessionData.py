@@ -162,9 +162,13 @@ class SessionData(object):
     # Add valid groups if known
     username = self.__credDict.get("username", "anonymous")
     if username != 'anonymous':
-      result = gProxyManager.getGroupsStatusByUsername(username)  # pylint: disable=no-member
+      result = Registry.getGroupsForUser(username)
+      if not result['OK']:
+        return result
+      data['validGroups'] = result['Value']
+      #result = gProxyManager.getGroupsStatusByUsername(username)  # pylint: disable=no-member
+      result = yield self.threadTask(gProxyManager.getGroupsStatusByUsername, username)
       if result['OK']:
-        data['validGroups'] = result['Value'].keys()
         data['groupsStatuses'] = result['Value']
     # Calculate baseURL
     baseURL = [Conf.rootURL().strip("/"),
