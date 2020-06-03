@@ -6,6 +6,7 @@ from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
+from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 
 from WebAppDIRAC.Lib import Conf
 
@@ -161,7 +162,7 @@ class SessionData(object):
     # Add valid groups if known
     username = self.__credDict.get("username", "anonymous")
     if username != 'anonymous':
-      result = Registry.getGroupsStatusByUsername(username)  # pylint: disable=no-member
+      result = gProxyManager.getGroupsStatusByUsername(username)  # pylint: disable=no-member
       if result['OK']:
         data['validGroups'] = result['Value'].keys()
         data['groupsStatuses'] = result['Value']
