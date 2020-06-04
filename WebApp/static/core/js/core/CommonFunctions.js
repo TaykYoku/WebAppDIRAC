@@ -81,25 +81,26 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-  
+    
+    var done = false;
+
     try {
-      document.execCommand('copy');
-      me.alert('Text copied to clipboard.\n Please, use Ctrl+V to get it..', 'info')
+      done = document.execCommand('copy');
     } catch (err) {
-      me.alert('Oops, unable to copy..\n', 'info');
-    }
+    };
   
     document.body.removeChild(textArea);
+    return done;
   },
 
-  alert: function(sMessage, sType, allowCopy=true) {
+  alert: function(sMessage, sType, sCopy=true) {
     var me = this;
 
     function onCopy(me) {
-      if (me.copyToClipboard(text)) {
+      if (me.copyToClipboard(sMessage)) {
         me.alert('Text copied to clipboard.\n Please, use Ctrl+V to get it..', 'info')
       } else {
-        me.alert('Oops, unable to copy..\n' + me.sMessage, me.sType, false);
+        me.alert('Oops, unable to copy..\n' + sMessage, sType, false);
       }
     }
 
@@ -114,10 +115,12 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
           title: "Error",
           msg: sMessage,
           icon: Ext.MessageBox.ERROR,
-          buttons: allowCopy ? Ext.MessageBox.OKYES : Ext.MessageBox.OK,
-          buttonText: {
+          buttons: sCopy ? Ext.MessageBox.OKYES : Ext.MessageBox.OK,
+          buttonText: sCopy ? {
             ok: "OK",
             no: "Copy"
+          } : {
+            ok: "OK",
           },
           fn: function(oButton) {
             if (oButton == "no") {
