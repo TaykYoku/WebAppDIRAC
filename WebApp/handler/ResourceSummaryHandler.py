@@ -188,14 +188,11 @@ class ResourceSummaryHandler(WebHandler):
       self.finish({'success': 'false', 'error': 'Missing action'})
 
   def setToken(self, requestParams):
-
-    sData = self.getSessionData()
-
-    username = sData["user"]["username"]
+    username = self.getUserName()
 
     if username == 'anonymous':
       self.finish({'success': 'false', 'error': 'Cannot perform this operation as anonymous'})
-    elif 'SiteManager' not in sData['user']['properties']:
+    elif 'SiteManager' not in self.getProperties():
       self.finish({'success': 'false', 'error': 'Not authorized'})
 
     pub = PublisherClient()
@@ -213,14 +210,11 @@ class ResourceSummaryHandler(WebHandler):
     self.finish({'success': 'true', 'result': res['Value']})
 
   def setStatus(self, requestParams):
-
-    sData = self.getSessionData()
-
-    username = sData["user"]["username"]
+    username = self.getUserName()
 
     if username == 'anonymous':
       self.finish({'success': 'false', 'error': 'Cannot perform this operation as anonymous'})
-    elif 'SiteManager' not in sData['user']['properties']:
+    elif 'SiteManager' not in self.getProperties():
       self.finish({'success': 'false', 'error': 'Not authorized'})
 
     pub = PublisherClient()

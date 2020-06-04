@@ -87,14 +87,12 @@ class JobMonitorHandler(WebHandler):
 
   @asyncGen
   def web_getSelectionData(self):
-    sData = self.getSessionData()
     callback = {}
-    user = sData["user"]["username"]
-    if user == "Anonymous":
+    user = self.getUserName()
+    if not self.isRegisteredUser():
       callback["prod"] = [["Insufficient rights"]]
     else:
-      cacheKey = (sData["user"].get("group", ""),
-                  sData["setup"])
+      cacheKey = (self.getUserGroup(), self.getUserSetup())
 
       callback = JobMonitorHandler.__dataCache.get(cacheKey)
       if not callback:
@@ -186,7 +184,7 @@ class JobMonitorHandler(WebHandler):
         callback["types"] = types
     # ##
         # groupProperty = credentials.getProperties(group)
-        if user == "Anonymous":
+        if not self.isRegisteredUser():
           callback["owner"] = [["Insufficient rights"]]
         else:
           result = yield self.threadTask(RPC.getOwners)
@@ -197,7 +195,7 @@ class JobMonitorHandler(WebHandler):
                 owner.append([str(i)])
             else:
               owner = [["Nothing to display"]]
-          elif 'NormalUser' in sData['user']['properties']:
+          elif 'NormalUser' in self.getProperties():
             owner = [[user]]
             callback["owner"] = owner
           else:
@@ -527,12 +525,10 @@ class JobMonitorHandler(WebHandler):
     if 'sandbox' in self.request.arguments:
       sbType = str(self.request.arguments['sandbox'][0])
 
-    userData = self.getSessionData()
-
     client = SandboxStoreClient(useCertificates=True,
-                                delegatedDN=str(userData["user"]["DN"]),
-                                delegatedGroup=str(userData["user"]["group"]),
-                                setup=userData["setup"])
+                                delegatedDN=self.getDN(),
+                                delegatedGroup=self.getUserGroup(),
+                                setup=self.getUserSetup())
 
     result = yield self.threadTask(client.downloadSandboxForJob, jobID, sbType, inMemory=True)
 
