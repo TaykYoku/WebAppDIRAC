@@ -311,81 +311,43 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     };
     var data = GLOBAL.APP.configData["groupsStatuses"];
     for (group in data){
-      for (let i = 0; i < data[group].length; i++) {
-        const status = data[group][i].Status;
-        const dn = data[group][i].DN;
-        const comment = data[group][i].Comment;
-        const action = data[group][i].Action;
-        if (status == "unknown" && data[group].length > 1) {
-          
-        } else if (status == 'ready') {
-          button_group.menu.push({
-            group: group,
-            text: group,
-            handler: function() {
-              var me = this;
-              var oHref = location.href;
-              var oQPosition = oHref.indexOf("?");
-              if (oQPosition != -1) {
-                location.href = oHref.substr(0, oQPosition) + "changeGroup?to=" + me.group;
-              } else {
-                location.href = oHref + "changeGroup?to=" + me.group;
-              }
+      const status = data[group].Status;
+      const dn = data[group].DN;
+      const comment = data[group].Comment;
+      const action = data[group].Action;
+      if (status == 'ready') {
+        button_group.menu.push({
+          group: group,
+          text: group,
+          handler: function() {
+            var me = this;
+            var oHref = location.href;
+            var oQPosition = oHref.indexOf("?");
+            if (oQPosition != -1) {
+              location.href = oHref.substr(0, oQPosition) + "changeGroup?to=" + me.group;
+            } else {
+              location.href = oHref + "changeGroup?to=" + me.group;
             }
-          });
-        } else {
-          button_group.menu.push({
-            title: status,
-            msg: comment,
-            group: group,
-            text: group,
-            iconCls: "dirac-icon-logout",
-            handler: function() {
-              Ext.Msg.show({
-                closeAction: "destroy",
-                title: this.title,
-                message: this.msg,
-                icon: Ext.Msg.INFO
-              });
-            }
-          });
-        }
+          }
+        });
+      } else {
+        button_group.menu.push({
+          title: status,
+          msg: comment,
+          group: group,
+          text: group,
+          iconCls: "dirac-icon-logout",
+          handler: function() {
+            Ext.Msg.show({
+              closeAction: "destroy",
+              title: this.title,
+              message: this.msg,
+              icon: Ext.Msg.INFO
+            });
+          }
+        });
       }
     }
-
-
-    // for (var i = 0; i < groups.length; i++) {
-    //   if (Object.values(GLOBAL.APP.configData["groupsStatuses"])[i]["Status"] == "ready") {
-    //     button_group.menu.push({
-    //       text: Object.keys(GLOBAL.APP.configData["groupsStatuses"])[i],
-    //       handler: function() {
-    //         var me = this;
-    //         var oHref = location.href;
-    //         var oQPosition = oHref.indexOf("?");
-    //         if (oQPosition != -1) {
-    //           location.href = oHref.substr(0, oQPosition) + "changeGroup?to=" + me.text;
-    //         } else {
-    //           location.href = oHref + "changeGroup?to=" + me.text;
-    //         }
-    //       }
-    //     });
-    //   } else {
-    //     button_group.menu.push({
-    //       title: Object.values(GLOBAL.APP.configData["groupsStatuses"])[i]["Status"],
-    //       msg: Object.values(GLOBAL.APP.configData["groupsStatuses"])[i]["Comment"],
-    //       text: Object.keys(GLOBAL.APP.configData["groupsStatuses"])[i],
-    //       iconCls: "dirac-icon-logout",
-    //       handler: function() {
-    //         Ext.Msg.show({
-    //           closeAction: "destroy",
-    //           title: this.title,
-    //           message: this.msg,
-    //           icon: Ext.Msg.INFO
-    //         });
-    //       }
-    //     });
-    //   }
-    // }
 
     return new Ext.button.Button(button_group);
   },
