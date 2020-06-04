@@ -166,8 +166,7 @@ class SessionData(object):
       if not result['OK']:
         return result
       data['validGroups'] = result['Value']
-      #result = gProxyManager.getGroupsStatusByUsername(username)  # pylint: disable=no-member
-      result = yield self.threadTask(gProxyManager.getGroupsStatusByUsername, username)
+      result = gProxyManager.getGroupsStatusByUsername(username)  # pylint: disable=no-member
       if result['OK']:
         data['groupsStatuses'] = result['Value']
     # Calculate baseURL
