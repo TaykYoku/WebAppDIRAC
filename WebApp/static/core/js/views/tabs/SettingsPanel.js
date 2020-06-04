@@ -311,12 +311,12 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     };
     var data = GLOBAL.APP.configData["groupsStatuses"];
     for (group in data){
-      for (let i = 0; i < data.group.length; i++) {
-        const status = data.group[i].Status;
-        const dn = data.group[i].DN;
-        const comment = data.group[i].Comment;
-        const action = data.group[i].Action;
-        if (status == "unknown" && data.group.length > 1) {
+      for (let i = 0; i < data[group].length; i++) {
+        const status = data[group][i].Status;
+        const dn = data[group][i].DN;
+        const comment = data[group][i].Comment;
+        const action = data[group][i].Action;
+        if (status == "unknown" && data[group].length > 1) {
           
         } else if (status == 'ready') {
           button_group.menu.push({
