@@ -96,66 +96,51 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
   alert: function(sMessage, sType, sCopy=true) {
     var me = this;
 
-    function onCopy(me) {
-      if (me.copyToClipboard(sMessage)) {
-        me.alert('Text copied to clipboard.\n Please, use Ctrl+V to get it..', 'info')
-      } else {
-        me.alert('Oops, unable to copy..\n' + sMessage, sType, false);
-      }
-    }
-
     if (sMessage == null) return;
     sMessage = sMessage.replace(new RegExp("\n", "g"), "<br/>");
-
     sMessage = me.chunkString(sMessage, 150).join("<br/>");
 
+    function onButton(me, oButton) {
+      if (oButton == "no") {
+        if (me.copyToClipboard(sMessage)) {
+          me.alert('Text copied to clipboard.\n Please, use Ctrl+V to get it..', 'info')
+        } else {
+          me.alert('Oops, unable to copy..\n' + sMessage, sType, false);
+        }
+      }
+    };
+
+    var title, icon;
     switch (sType) {
       case "error":
-        Ext.MessageBox.show({
-          title: "Error",
-          msg: sMessage,
-          icon: Ext.MessageBox.ERROR,
-          buttons: sCopy ? Ext.MessageBox.OKYES : Ext.MessageBox.OK,
-          buttonText: sCopy ? {
-            ok: "OK",
-            no: "Copy"
-          } : {
-            ok: "OK",
-          },
-          fn: function(oButton) {
-            if (oButton == "no") {
-              onCopy(me)
-            }
-          },
-        });
+        title = "Error";
+        icon = Ext.MessageBox.ERROR;
         break;
 
       case "info":
-        Ext.MessageBox.show({
-          title: "Information",
-          msg: sMessage,
-          buttons: Ext.MessageBox.OK,
-          icon: Ext.MessageBox.INFO
-        });
+        title = "Information";
+        icon = Ext.MessageBox.INFO;
         break;
 
       case "warning":
-        Ext.MessageBox.show({
-          title: "Warning",
-          msg: sMessage,
-          buttons: Ext.MessageBox.OK,
-          icon: Ext.MessageBox.WARNING
-        });
+        title = "Warning";
+        icon = Ext.MessageBox.WARNING;
         break;
 
       default:
-        Ext.MessageBox.show({
-          title: "Error",
-          msg: sMessage,
-          buttons: Ext.MessageBox.OK,
-          icon: Ext.MessageBox.ERROR
-        });
+        title = "Error";
+        icon = Ext.MessageBox.ERROR;
     }
+    
+    Ext.MessageBox.show({
+      title: title,
+      msg: sMessage,
+      icon: icon,
+      buttons: sCopy ? Ext.MessageBox.OKYES : Ext.MessageBox.OK,
+      buttonText: sCopy ? { ok: "OK", no: "Copy" } : { ok: "OK" },
+      fn: onButton(me, oButton)
+    });
+    
   },
 
   job_status_palette: {
