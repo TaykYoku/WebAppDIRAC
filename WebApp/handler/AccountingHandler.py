@@ -18,11 +18,8 @@ class AccountingHandler(WebHandler):
   __keysCache = DictCache.DictCache()
 
   def __getUniqueKeyValues(self, typeName):
-    sessionData = self.getSessionData()
-    cacheKey = (sessionData["user"].get("username", ""),
-                sessionData["user"].get("group", ""),
-                sessionData["setup"],
-                typeName)
+    cacheKey = (self.getUserName(), self.getUserGroup(),
+                self.getUserSetup(), typeName)
     data = AccountingHandler.__keysCache.get(cacheKey)
     if not data:
       retVal = ReportsClient().listUniqueKeyValues(typeName)

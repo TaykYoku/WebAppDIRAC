@@ -237,12 +237,10 @@ class ActivityMonitorHandler(WebHandler):
 
     result = []
 
-    userData = self.getSessionData()
-
     retVal = gConfig.getSections('/DIRAC/Setups')
     if retVal['OK']:
       setups = [i.split('-')[-1] for i in retVal['Value']]
-    setup = userData['setup'].split('-')[-1]
+    setup = self.getUserSetup().split('-')[-1]
     leaf = True if path.find('Agents') != -1 or path.find('Services') != -1 else False
     retVal = gConfig.getSections(path)
 
