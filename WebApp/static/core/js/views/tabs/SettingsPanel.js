@@ -321,6 +321,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
         } else if (status == 'ready') {
           button_group.menu.push({
             group: group,
+            text: group,
             handler: function() {
               var me = this;
               var oHref = location.href;
@@ -337,6 +338,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
             title: status,
             msg: comment,
             group: group,
+            text: group,
             iconCls: "dirac-icon-logout",
             handler: function() {
               Ext.Msg.show({
