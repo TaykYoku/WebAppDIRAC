@@ -76,7 +76,6 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     // Avoid flash of white box if rendered for any reason.
     textArea.style.background = 'transparent';
   
-  
     textArea.value = text;
   
     document.body.appendChild(textArea);
@@ -84,18 +83,25 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     textArea.select();
   
     try {
-      var successful = document.execCommand('copy');
-      var msg = successful ? 'successful' : 'unsuccessful';
-      console.log('Copying text command was ' + msg);
+      document.execCommand('copy');
+      me.alert('Text copied to clipboard.\n Please, use Ctrl+V to get it..', 'info')
     } catch (err) {
-      console.log('Oops, unable to copy');
+      me.alert('Oops, unable to copy..\n', 'info');
     }
   
     document.body.removeChild(textArea);
   },
 
-  alert: function(sMessage, sType) {
+  alert: function(sMessage, sType, allowCopy=true) {
     var me = this;
+
+    function onCopy(me) {
+      if (me.copyToClipboard(text)) {
+        me.alert('Text copied to clipboard.\n Please, use Ctrl+V to get it..', 'info')
+      } else {
+        me.alert('Oops, unable to copy..\n' + me.sMessage, me.sType, false);
+      }
+    }
 
     if (sMessage == null) return;
     sMessage = sMessage.replace(new RegExp("\n", "g"), "<br/>");
@@ -107,16 +113,15 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
         Ext.MessageBox.show({
           title: "Error",
           msg: sMessage,
-          // buttons: Ext.MessageBox.OK,
           icon: Ext.MessageBox.ERROR,
-          buttons: Ext.MessageBox.OKYES,
+          buttons: allowCopy ? Ext.MessageBox.OKYES : Ext.MessageBox.OK,
           buttonText: {
             ok: "OK",
             no: "Copy"
           },
           fn: function(oButton) {
             if (oButton == "no") {
-              me.copyToClipboard(sMessage)
+              onCopy(me)
             }
           },
         });
