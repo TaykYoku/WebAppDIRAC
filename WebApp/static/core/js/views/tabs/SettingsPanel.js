@@ -309,7 +309,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       text: GLOBAL.APP.configData["user"]["group"],
       menu: []
     };
-    var data = Object.keys(GLOBAL.APP.configData["groupsStatuses"]);
+    var data = GLOBAL.APP.configData["groupsStatuses"];
     for (group in data){
       for (let i = 0; i < data.group.length; i++) {
         const status = data.group[i].Status;
