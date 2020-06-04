@@ -100,16 +100,6 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     sMessage = sMessage.replace(new RegExp("\n", "g"), "<br/>");
     sMessage = me.chunkString(sMessage, 150).join("<br/>");
 
-    function onButton(me, oButton) {
-      if (oButton == "no") {
-        if (me.copyToClipboard(sMessage)) {
-          me.alert('Text copied to clipboard.\n Please, use Ctrl+V to get it..', 'info')
-        } else {
-          me.alert('Oops, unable to copy..\n' + sMessage, sType, false);
-        }
-      }
-    };
-
     var title, icon;
     switch (sType) {
       case "error":
@@ -138,7 +128,15 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
       icon: icon,
       buttons: sCopy ? Ext.MessageBox.OKYES : Ext.MessageBox.OK,
       buttonText: sCopy ? { ok: "OK", no: "Copy" } : { ok: "OK" },
-      fn: onButton(me, oButton)
+      fn: function (oButton) {
+        if (oButton == "no") {
+          if (me.copyToClipboard(sMessage)) {
+            me.alert('Text copied to clipboard.\n Please, use Ctrl+V to get it..', 'info', false)
+          } else {
+            me.alert('Oops, unable to copy..\n\n' + sMessage, sType, false);
+          }
+        }
+      }
     });
     
   },
