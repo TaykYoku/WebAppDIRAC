@@ -29,6 +29,131 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
 
     return oList;
   },
+
+  /**
+   * Helper function to submit authentication flow and read status of it
+   */
+  auth: function(authProvider) {
+    var me = this;
+    Ext.Ajax.request({
+      url: GLOBAL.BASE_URL + "Authentication/auth",
+      params: {
+        typeauth: authProvider
+      },
+      success: function(response) {
+        if (!response.status == 200) {
+          return me.alert(response.statusText, "error");
+        } else {
+          var result = Ext.decode(response.responseText);
+          if (!result.OK) {
+            return me.alert("Authentication was ended with error: \n" + result.Message, "error");
+          } else if (result.Value.Action == "reload") {
+            return (location.protocol = "https:");
+          } else if (result.Value.Action == "popup") {
+            if (!result.Value.URL || !result.Value.Session) {
+              return me.alert("We cannot get authorization URL.", "error");
+            } else {
+              authorizationURL = result.Value.URL;
+              session = result.Value.Session;
+
+              // Open popup
+              me.log("debug", 'Open authorization URL: "' + authorizationURL + '"');
+              var oAuthReqWin = open(authorizationURL, "popupWindow", "hidden=yes,height=570,width=520,scrollbars=yes,status=yes");
+              oAuthReqWin.focus();
+
+              // Send request to redirect URL about success authorization
+              Ext.get("app-dirac-loading").show();
+              Ext.get("app-dirac-loading-msg").setHtml("Waiting when authentication will be finished...");
+              me.log("debug", "Watch when popup window will be close");
+              var res = (function waitPopupClosed(i, r) {
+                if (r === "closed") {
+                  return Ext.Ajax.request({
+                    url: GLOBAL.BASE_URL + "Authentication/waitOAuthStatus",
+                    params: {
+                      typeauth: authProvider,
+                      session: session
+                    },
+                    async: false,
+                    success: function(response) {
+                      var msg,
+                        title = "Authentication error.",
+                        icon = Ext.Msg.INFO,
+                        result = Ext.decode(response.responseText);
+                      if (!result.OK) {
+                        icon = Ext.Msg.ERROR;
+                        msg = result.Message.replace(/\n/g, "<br>");
+                      } else {
+                        title = "Authenticated successfully.";
+                        msg = result.Value.Comment ? result.Value.Comment.replace(/\n/g, "<br>") : "";
+                        if (result.Value.Status == "failed") {
+                          icon = Ext.Msg.ERROR;
+                        } else if (result.Value.Status == "authed") {
+                          return (location.protocol = "https:");
+                        } else if (result.Value.Status == "visitor") {
+                          msg = "You have permissions as Visitor.\n" + msg;
+                        } else if (result.Value.Status == "authed and reported") {
+                          msg = "Admins was notified about you.\n" + msg;
+                        } else {
+                          icon = Ext.Msg.ERROR;
+                          title = "Authentication error.";
+                          msg = "Authentication thread discontinued.\n" + msg;
+                        }
+                      }
+                      // Hide load icon
+                      Ext.get("app-dirac-loading").hide();
+                      Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
+                      return Ext.Msg.show({
+                        closeAction: "destroy",
+                        title: title,
+                        message: msg,
+                        icon: icon
+                      });
+                    },
+                    failure: function(form, action) {
+                      // Hide load icon
+                      Ext.get("app-dirac-loading").hide();
+                      Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
+                      return me.alert("Request was ended with error: " + form + action, "error");
+                    }
+                  });
+                } else {
+                  setTimeout(function() {
+                    if (--i) {
+                      if (oAuthReqWin === undefined) {
+                        me.log("debug", "Popup window was closed.");
+                        return waitPopupClosed(0, "closed");
+                      }
+                      if (oAuthReqWin) {
+                        if (oAuthReqWin.closed) {
+                          me.log("debug", "Popup window was closed.");
+                          return waitPopupClosed(0, "closed");
+                        } else {
+                          oAuthReqWin.focus();
+                          return waitPopupClosed(i);
+                        }
+                      } else {
+                        return waitPopupClosed(i);
+                      }
+                    } else {
+                      return waitPopupClosed(120);
+                    }
+                  }, 1000);
+                }
+              })(120, "opened");
+            }
+          } else {
+            return me.alert("Cannot submit authorization flow.", "error");
+          }
+        }
+      },
+      failure: function(form, action) {
+        // Hide load icon
+        Ext.get("app-dirac-loading").hide();
+        Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
+        return me.alert("Request was ended with error: " + form + action, "error");
+      }
+    });
+  },
   
   /**
    * More info: https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
@@ -92,13 +217,17 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     document.body.removeChild(textArea);
     return done;
   },
-
-  alert: function(sMessage, sType, sCopy=true) {
-    var me = this;
-
+  
+  alert: function(sMessage, sType, btnCopy=true, action=false) {
+    var me = this,
+        btns = {yes: "OK"};
+    
     if (sMessage == null) return;
     sMessage = sMessage.replace(new RegExp("\n", "g"), "<br/>");
     sMessage = me.chunkString(sMessage, 150).join("<br/>");
+
+    if (btnCopy) btns[cancel] = "Copy";
+    if (action) { btns[ok] = "Submit"; btns[yes] = "Ignore" };
 
     var title, icon;
     switch (sType) {
@@ -126,19 +255,47 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
       title: title,
       msg: sMessage,
       icon: icon,
-      buttons: sCopy ? Ext.MessageBox.OKYES : Ext.MessageBox.OK,
-      buttonText: sCopy ? { ok: "OK", no: "Copy" } : { ok: "OK" },
+      buttonText: btns,
       fn: function (oButton) {
-        if (oButton == "no") {
+        if (oButton == "cancel") {
+          // copy
           if (me.copyToClipboard(sMessage)) {
-            me.alert('Text copied to clipboard.\n Please, use Ctrl+V to get it..', 'info', false)
+            me.msg('info', 'Text copied to clipboard. Please, use Ctrl+V to get it..')
+            me.alert(sMessage, sType, true);
           } else {
-            me.alert('Oops, unable to copy..\n\n' + sMessage, sType, false);
+            me.msg('info', 'Oops, unable to copy..')
+            me.alert(sMessage, sType, false);
           }
+        } else if (oButton == "ok") {
+          // agree and action
+          me.action(action[0], action[1])
+        } else if (oButton == "yes") {
+          // agree and ignore
         }
       }
     });
     
+  },
+
+  action: function(aType, aOptns) {
+    var me = this;
+
+    if (aType == null) return;
+    
+    switch (aType) {
+      case "auth":
+        me.auth.apply(null, aOptns);
+        break;
+
+      case "upload proxy":
+        break;
+
+      case "send mail":
+        break;
+
+      default:
+        break;
+    }
   },
 
   job_status_palette: {
