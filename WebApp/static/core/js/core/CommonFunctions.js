@@ -40,7 +40,9 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
       params: {
         typeauth: authProvider
       },
+      scope: me,
       success: function(response) {
+        var me = this;
         if (!response.status == 200) {
           return me.alert(response.statusText, "error");
         } else {
