@@ -286,7 +286,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     
     switch (aType) {
       case "auth":
-        me.auth.apply(null, aOptns);
+        me.auth.apply(me, aOptns);
         break;
 
       case "upload proxy":
