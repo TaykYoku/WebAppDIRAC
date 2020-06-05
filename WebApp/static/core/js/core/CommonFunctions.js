@@ -220,14 +220,14 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
   
   alert: function(sMessage, sType, btnCopy=true, action=false) {
     var me = this,
-        btns = {yes: "OK"};
+        btns = {"yes": "OK"};
     
     if (sMessage == null) return;
     sMessage = sMessage.replace(new RegExp("\n", "g"), "<br/>");
     sMessage = me.chunkString(sMessage, 150).join("<br/>");
 
-    if (btnCopy) btns[cancel] = "Copy";
-    if (action) { btns[ok] = "Submit"; btns[yes] = "Ignore" };
+    if (btnCopy) btns["cancel"] = "Copy";
+    if (action) { btns["ok"] = "Submit"; btns["yes"] = "Ignore" };
 
     var title, icon;
     switch (sType) {
