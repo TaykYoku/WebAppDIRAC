@@ -410,7 +410,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
 
     message = message.replace(new RegExp("\n", "g"), "<br/>");
 
-    message = me.chunkString(message, 150).join("<br/>");
+    //message = me.chunkString(message, 150).join("<br/>");
 
     if (Ext.Array.contains(me.messages, message)) {
       return;
