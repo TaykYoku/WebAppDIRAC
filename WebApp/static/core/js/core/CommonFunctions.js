@@ -263,10 +263,10 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
           // copy
           if (me.copyToClipboard(sMessage)) {
             me.msg('info', 'Text copied to clipboard. Please, use Ctrl+V to get it..')
-            me.alert(sMessage, sType, true);
+            me.alert(sMessage, sType, true, action);
           } else {
             me.msg('info', 'Oops, unable to copy..')
-            me.alert(sMessage, sType, false);
+            me.alert(sMessage, sType, false, action);
           }
         } else if (oButton == "ok") {
           // agree and action
@@ -289,7 +289,8 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
         me.auth.apply(me, aOptns);
         break;
 
-      case "upload proxy":
+      case "openURL":
+        window.open(aOptns[0], '_blank');
         break;
 
       case "send mail":
