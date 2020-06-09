@@ -154,7 +154,7 @@ class WebHandler(tornado.web.RequestHandler):
     if not result['OK']:
       self.log.warn('To enable idenyity provider need to use "TypeAuths" section, but %s' % result['Message'])
     if self.__idp not in (result.get('Value') or []):
-      return S_ERROR(self.__idp, "is absent in configuration.")
+      return S_ERROR("%s is absent in configuration." % self.__idp)
 
     if not self.__session:
       return S_ERROR('No found session in cookies.')
