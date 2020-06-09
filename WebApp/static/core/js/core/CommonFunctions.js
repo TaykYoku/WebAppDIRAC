@@ -33,12 +33,13 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
   /**
    * Helper function to submit authentication flow and read status of it
    */
-  auth: function(authProvider) {
+  auth: function(authProvider, inthread) {
     var me = this;
     Ext.Ajax.request({
       url: GLOBAL.BASE_URL + "Authentication/auth",
       params: {
-        typeauth: authProvider
+        typeauth: authProvider,
+        inthread: inthread ?? null
       },
       scope: me,
       success: function(response) {

@@ -84,6 +84,7 @@ class AuthenticationHandler(WebHandler):
     """
     result = S_OK({'Action': 'reload'})
     typeAuth = str(self.request.arguments["typeauth"][0])
+    inTread = str(self.request.arguments["inthread"][0])
     session = self.get_cookie(typeAuth)
 
     if typeAuth == 'Log out':
@@ -99,7 +100,8 @@ class AuthenticationHandler(WebHandler):
         self.clear_cookie(typeAuth)
       else:
         if result['Value']['Status'] == 'ready':
-          self.set_cookie("TypeAuth", typeAuth)
+          if inTread:
+            self.set_cookie("TypeAuth", typeAuth)
           result['Value']['Action'] = 'reload'
         elif result['Value']['Status'] == 'needToAuth':
           result['Value']['Action'] = 'popup'
