@@ -46,6 +46,7 @@ class AuthenticationHandler(WebHandler):
     """
     session = str(self.request.arguments["session"][0])
     typeAuth = str(self.request.arguments["typeauth"][0])
+    inThread = str(self.request.arguments["inthread"][0])
     self.log.verbose(session, 'session, waiting "%s" authentication status' % typeAuth)
 
     result = S_ERROR('Timeout')
@@ -70,7 +71,7 @@ class AuthenticationHandler(WebHandler):
       self.log.error(session, 'session, %s ' % result['Message'])
     else:
       self.log.verbose(session, 'session, authentication status: %s' % status)
-      if status == 'authed':
+      if status == 'authed' and not inThread:
         self.set_cookie("TypeAuth", typeAuth)
         self.set_cookie(typeAuth, result['Value']['Session'])
       else:
@@ -84,7 +85,7 @@ class AuthenticationHandler(WebHandler):
     """
     result = S_OK({'Action': 'reload'})
     typeAuth = str(self.request.arguments["typeauth"][0])
-    inTread = str(self.request.arguments["inthread"][0])
+    inThread = str(self.request.arguments["inthread"][0])
     session = self.get_cookie(typeAuth)
 
     if typeAuth == 'Log out':
@@ -100,7 +101,7 @@ class AuthenticationHandler(WebHandler):
         self.clear_cookie(typeAuth)
       else:
         if result['Value']['Status'] == 'ready':
-          if inTread:
+          if not inThread:
             self.set_cookie("TypeAuth", typeAuth)
           result['Value']['Action'] = 'reload'
         elif result['Value']['Status'] == 'needToAuth':

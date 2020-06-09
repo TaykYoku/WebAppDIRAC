@@ -74,6 +74,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
                     url: GLOBAL.BASE_URL + "Authentication/waitOAuthStatus",
                     params: {
                       typeauth: authProvider,
+                      inthread: inthread ?? null,
                       session: session
                     },
                     async: false,
