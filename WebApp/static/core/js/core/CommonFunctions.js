@@ -93,10 +93,6 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
                           icon = Ext.Msg.ERROR;
                         } else if (result.Value.Status == "authed") {
                           return (location.protocol = "https:");
-                        } else if (result.Value.Status == "visitor") {
-                          msg = "You have permissions as Visitor.\n" + msg;
-                        } else if (result.Value.Status == "authed and reported") {
-                          msg = "Admins was notified about you.\n" + msg;
                         } else {
                           icon = Ext.Msg.ERROR;
                           title = "Authentication error.";
