@@ -89,6 +89,7 @@ class AuthenticationHandler(WebHandler):
     session = self.get_cookie(typeAuth)
 
     if typeAuth == 'Log out':
+      #gSessionManager.logOutSession(typeAuth, session)
       self.clear_all_cookies()
       self.set_cookie("TypeAuth", 'Visitor')
 

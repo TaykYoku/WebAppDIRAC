@@ -315,7 +315,7 @@ class WebHandler(tornado.web.RequestHandler):
       if self.__credDict.get('DN'):
         msg = '%s' % self.__credDict['DN']
       elif self.__credDict.get('ID'):
-        result = gOAuthManagerData.getIdPForID(self.__credDict['ID'])  # pylint: disable=no-member
+        result = gOAuthManagerData.getIdPsForID(self.__credDict['ID'])  # pylint: disable=no-member
         if not result['OK']:
           self.log.error(result['Message'])
           return False
