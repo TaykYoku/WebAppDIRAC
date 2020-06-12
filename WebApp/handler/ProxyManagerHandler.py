@@ -79,7 +79,7 @@ class ProxyManagerHandler(WebHandler):
                                             record['groups'] if record['groups'] > 1 else record['groups'][0]),
                       'UserName': record['user'],
                       'UserDN': record['DN'],
-                      'UserGroup': record['groups'],
+                      'UserGroups': record['groups'],
                       'ExpirationTime': str(record['expirationtime']),
                       'Provider': record['provider'],
                       'ProxyProvider': record['provider']})
@@ -172,7 +172,7 @@ class ProxyManagerHandler(WebHandler):
     if "usergroup" in self.request.arguments:
       usersgroup = list(json.loads(self.request.arguments['usergroup'][-1]))
       if len(usersgroup) > 0:
-        req['UserGroup'] = usersgroup
+        req['UserGroups'] = usersgroup
 
     if "usersgroup" in self.request.arguments and len(self.request.arguments["persistent"]) > 0:
       if str(self.request.arguments["persistent"]) in ["True", "False"]:
