@@ -74,7 +74,6 @@ class ProxyManagerHandler(WebHandler):
       self.finish({"success": "false", "error": result["Message"]})
     svcData = result['Value']
     proxies = []
-    dnMap = {}
     for record in svcData['Dictionaries']:
       proxies.append({'proxyid': "%s@%s" % (record["DN"],
                                             record['groups'] if record['groups'] > 1 else record['groups'][0]),
@@ -82,7 +81,7 @@ class ProxyManagerHandler(WebHandler):
                       'UserDN': record['DN'],
                       'UserGroup': record['groups'],
                       'ExpirationTime': str(record['expirationtime']),
-                      'PersistentFlag': str(record['persistent']),
+                      'Provider': record['provider'],
                       'ProxyProvider': record['provider']})
     timestamp = Time.dateTime().strftime("%Y-%m-%d %H:%M [UTC]")
     data = {"success": "true", "result": proxies, "total": svcData['TotalRecords'], "date": timestamp}
