@@ -208,8 +208,8 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
           }
         }
       },
-      Persistent: {
-        dataIndex: "PersistentFlag",
+      Provider: {
+        dataIndex: "Provider",
         properties: {
           width: 100,
           sortable: true
