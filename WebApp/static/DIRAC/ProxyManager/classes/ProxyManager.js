@@ -54,7 +54,7 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
       name: "UserDN"
     },
     {
-      name: "UserGroup",
+      name: "UserGroups",
       type: "auto"
     },
     {
@@ -63,7 +63,7 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
       dateFormat: "Y-m-d H:i:s"
     },
     {
-      name: "PersistentFlag"
+      name: "Provider"
     }
   ],
 
@@ -176,11 +176,11 @@ Ext.define("DIRAC.ProxyManager.classes.ProxyManager", {
           sortable: true
         }
       },
-      Group: {
-        dataIndex: "UserGroup",
+      "Supported groups": {
+        dataIndex: "UserGroups",
         properties: {
           width: 100,
-          sortable: true
+          sortable: false
         }
       },
       "Expiration date (UTC)": {
