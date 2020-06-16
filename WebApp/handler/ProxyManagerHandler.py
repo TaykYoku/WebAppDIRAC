@@ -68,7 +68,7 @@ class ProxyManagerHandler(WebHandler):
       self.finish({"success": "false", "error": "You are not authorize to access these data"})
     start, limit, sort, req = self.__request()
     # pylint: disable=no-member
-    result = yield self.threadTask(ProxyManagerClient().getUploadedProxiesDetails, None, None, req, start, limit)
+    result = yield self.threadTask(ProxyManagerClient().getDBContents, req, start, limit)
     gLogger.info("*!*!*!  RESULT: \n%s" % result)
     if not result['OK']:
       self.finish({"success": "false", "error": result["Message"]})
