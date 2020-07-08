@@ -1,5 +1,5 @@
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler
+from DIRAC.Core.Web.WebHandler import WebHandler
 
 class NotepadHandler(WebHandler):
 

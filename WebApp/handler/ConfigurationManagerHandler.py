@@ -7,7 +7,7 @@ from DIRAC.Core.Utilities import Time, List
 from DIRAC.Core.Utilities.CFG import CFG
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 
-from WebAppDIRAC.Lib.WebHandler import WebSocketHandler, WErr, asyncGen
+from DIRAC.Core.Web.WebHandler import WebSocketHandler, WErr, asyncGen
 
 
 class ConfigurationManagerHandler(WebSocketHandler):

@@ -6,8 +6,8 @@ from tornado.escape import xhtml_escape
 
 from DIRAC import rootPath, gLogger
 
-from WebAppDIRAC.Lib import Conf
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
+from DIRAC.Core.Web import Conf
+from DIRAC.Core.Web.WebHandler import WebHandler, WErr
 
 
 class RootHandler(WebHandler):

@@ -3,7 +3,7 @@
 
 import json
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
+from DIRAC.Core.Web.WebHandler import WebHandler, WErr, asyncGen
 from DIRAC import gLogger
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 

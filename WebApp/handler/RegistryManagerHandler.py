@@ -1,5 +1,5 @@
 
-from WebAppDIRAC.Lib.WebHandler import WebSocketHandler, asyncGen
+from DIRAC.Core.Web.WebHandler import WebSocketHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities.CFG import CFG
