@@ -4,7 +4,7 @@ from DIRAC.Core.Utilities import Time
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient import ProxyManagerClient
 from DIRAC.Core.Utilities.List import uniqueElements
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen
 
 
 class ProxyManagerHandler(WebHandler):
@@ -95,12 +95,11 @@ class ProxyManagerHandler(WebHandler):
     except BaseException:
       self.finish({"success": "false", "error": "No valid id's specified"})
     idList = []
-    for id in webIds:
-      spl = id.split("@")
+    for uid in webIds:
+      spl = uid.split("@")
       dn = "@".join(spl[:-1])
-      group = spl[-1]
-      idList.append((dn, group))
-    retVal = yield self.threadTask(ProxyManagerClient().deleteProxy, None, None, idList)  # pylint: disable=no-member
+      idList.append(dn)
+    retVal = yield self.threadTask(ProxyManagerClient().deleteProxy, idList)  # pylint: disable=no-member
     callback = {}
     if retVal['OK']:
       callback = {"success": "true", "result": retVal['Value']}

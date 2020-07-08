@@ -1,5 +1,5 @@
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen
 from DIRAC.FrameworkSystem.Client import ProxyUpload
 from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC import gLogger

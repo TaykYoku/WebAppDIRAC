@@ -9,7 +9,7 @@ from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen
 
 
 class AccountingHandler(WebHandler):

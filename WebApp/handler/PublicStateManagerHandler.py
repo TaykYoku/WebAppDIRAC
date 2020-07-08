@@ -1,4 +1,4 @@
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen
 
 
 class PublicStateManagerHandler(WebHandler):

@@ -7,8 +7,8 @@ from tornado.web import HTTPError, RequestHandler
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 
-from WebAppDIRAC.Lib import Conf
-from WebAppDIRAC.Lib.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.Web import Conf
+from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen
 
 from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import gSessionManager  # pylint:disable=import-error
 

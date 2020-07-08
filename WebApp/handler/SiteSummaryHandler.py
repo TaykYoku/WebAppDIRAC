@@ -7,7 +7,7 @@ from DIRAC.Core.Utilities.Plotting.FileCoding import codeRequestInFileId
 from DIRAC.ResourceStatusSystem.Utilities.CSHelpers import getSiteComputingElements
 from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 
-from WebAppDIRAC.Lib.WebHandler import asyncGen
+from DIRAC.Core.Web.WebHandler import asyncGen
 from WebAppDIRAC.WebApp.handler.ResourceSummaryHandler import ResourceSummaryHandler
 
 class SiteSummaryHandler(ResourceSummaryHandler):
