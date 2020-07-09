@@ -10,7 +10,7 @@ from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.Core.Web import Conf
 from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen
 
-from OAuthDIRAC.FrameworkSystem.Client.OAuthManagerClient import gSessionManager  # pylint:disable=import-error
+from DIRAC.FrameworkSystem.Client.AuthManagerClient import gSessionManager
 
 
 class AuthenticationHandler(WebHandler):
