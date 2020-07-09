@@ -24,7 +24,7 @@ Ext.define("Ext.dirac.views.tabs.LeftContainer", {
     var menu = Ext.create("Ext.dirac.views.tabs.MenuTabs", {
       menu: me.menu
     });
-    //Ext.apply(me, { items: menu });
+    Ext.apply(me, { items: menu });
     me.callParent(arguments);
   },
   setActiveMenu: function(name) {
