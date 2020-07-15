@@ -1441,7 +1441,7 @@ Ext.define("DIRAC.FileCatalog.classes.FileCatalog", {
         if (bNot) {
           sSign = "!=";
         } else {
-
+          // sSign = "=";
           oDropDown.suspendEvents(false);
 
           var oNewStore = new Ext.data.ArrayStore({
