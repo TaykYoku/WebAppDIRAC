@@ -1,8 +1,8 @@
+from diraccfg import CFG
 
 from DIRAC.Core.Web.WebHandler import WebSocketHandler, asyncGen
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC import gConfig, gLogger
-from DIRAC.Core.Utilities.CFG import CFG
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 
 import json
