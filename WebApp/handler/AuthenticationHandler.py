@@ -51,15 +51,12 @@ class AuthenticationHandler(WebHandler):
 
     result = S_ERROR('Timeout')
     for i in range(4):
-      if not gSessionManager:
-        result = S_ERROR('Not session manager found.')
-        break
       result = yield self.threadTask(gSessionManager.getSessionStatus, session)
       if not result['OK']:
-        raise WErr(500, result['Message'])
+        break
       status = result['Value']['Status']
       gLogger.verbose('%s session' % session, status)
-      if status not in ['prepared','in progress','finishing', 'redirect']:
+      if status in ['authed', 'failed']:
         break
       if status == 'prepared' and i > 2:
         result = S_ERROR('Waiting authentication response to long.')
@@ -69,15 +66,16 @@ class AuthenticationHandler(WebHandler):
     if not result['OK']:
       yield self.threadTask(gSessionManager.killSession, session)
       self.log.error(session, 'session, %s ' % result['Message'])
+      raise WErr(500, result['Message'])
+    
+    self.log.verbose(session, 'session, authentication status: %s' % status)
+    if status == 'authed' and not inThread:
+      self.set_cookie("TypeAuth", typeAuth)
+      self.set_cookie(typeAuth, result['Value']['Session'])
     else:
-      self.log.verbose(session, 'session, authentication status: %s' % status)
-      if status == 'authed' and not inThread:
-        self.set_cookie("TypeAuth", typeAuth)
-        self.set_cookie(typeAuth, result['Value']['Session'])
-      else:
-        self.clear_cookie(typeAuth)
+      self.clear_cookie(typeAuth)
 
-    self.finish(result)
+    self.finish({'Status': status, 'Comment': result['Value'].get('Comment', '')})
 
   @asyncGen
   def web_auth(self):

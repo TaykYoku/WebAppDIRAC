@@ -79,34 +79,22 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
                     },
                     async: false,
                     success: function(response) {
-                      var msg,
-                        title = "Authentication error.",
-                        icon = Ext.Msg.INFO,
-                        result = Ext.decode(response.responseText);
-                      if (!result.OK) {
-                        icon = Ext.Msg.ERROR;
-                        msg = result.Message.replace(/\n/g, "<br>");
-                      } else {
-                        title = "Authenticated successfully.";
-                        msg = result.Value.Comment ? result.Value.Comment.replace(/\n/g, "<br>") : "";
-                        if (result.Value.Status == "failed") {
-                          icon = Ext.Msg.ERROR;
-                        } else if (result.Value.Status == "authed") {
-                          return (location.protocol = "https:");
-                        } else {
-                          icon = Ext.Msg.ERROR;
-                          title = "Authentication error.";
-                          msg = "Authentication thread discontinued.\n" + msg;
-                        }
+                      var result = Ext.decode(response.responseText);
+                      var msg = result.Comment ? result.Comment.replace(/\n/g, "<br>") : "";
+                      if (result.Status == "authed") {
+                        return (location.protocol = "https:");  
+                      } else if (result.Status != "failed") {
+                        msg = "Authentication thread discontinued.\n" + msg;
                       }
+                      
                       // Hide load icon
                       Ext.get("app-dirac-loading").hide();
                       Ext.get("app-dirac-loading-msg").setHtml("Loading module. Please wait ...");
                       return Ext.Msg.show({
                         closeAction: "destroy",
-                        title: title,
+                        title: "Authentication error.",
                         message: msg,
-                        icon: icon
+                        icon: Ext.Msg.ERROR
                       });
                     },
                     failure: function(form, action) {
