@@ -153,7 +153,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
 
     # FIXME: use properly RSS
     for se in storageElements:
-      sestatuses = yield self.threadTask(pub.getElementStatuses,
+      sestatuses = pub.getElementStatuses(  #yield self.threadTask(pub.getElementStatuses,
                                          'Resource',
                                          se,
                                          None,
