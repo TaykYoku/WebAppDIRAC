@@ -153,7 +153,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
 
     # FIXME: use properly RSS
     for se in storageElements:
-      sestatuses = pub.getElementStatuses(  #yield self.threadTask(pub.getElementStatuses,
+      sestatuses = pub.getElementStatuses(  # yield self.threadTask(pub.getElementStatuses,
                                          'Resource',
                                          se,
                                          None,
@@ -184,7 +184,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     gLogger.info('computing_elements = ' + str(computing_elements))
 
     for ce in computing_elements:
-      cestatuses = yield self.threadTask(pub.getElementStatuses,
+      cestatuses = pub.getElementStatuses(  # yield self.threadTask(pub.getElementStatuses,
                                          'Resource',
                                          ce,
                                          None,
