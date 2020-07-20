@@ -26,6 +26,10 @@ class ProxyManagerHandler(WebHandler):
       callback["extra"] = tmp
     result = yield self.threadTask(ProxyManagerClient().getUploadedProxiesDetails)  # pylint: disable=no-member
     if not result["OK"]:
+      
+      if result.get('Errno', 0) == 1112:
+        
+        raise WErr(503, "Connection error")
       self.finish({"success": "false", "error": result["Message"]})
     data = result["Value"]
     users = []
