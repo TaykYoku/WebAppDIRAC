@@ -19,7 +19,7 @@ class JobSummaryHandler(WebHandler):
   def web_getSelectionData(self):
     callback = {}
 
-    result = self.threadTask(WMSAdministratorClient().getSiteSummarySelectors)
+    result = yield self.threadTask(WMSAdministratorClient().getSiteSummarySelectors)
     gLogger.info("\033[0;31m ++++++: \033[0m %s" % result)
     if result["OK"]:
       result = result["Value"]
@@ -86,7 +86,7 @@ class JobSummaryHandler(WebHandler):
     pagestart = time()
     result = self.__request()
     gLogger.always("getSiteSummaryWeb(%s,%s,%s,%s)" % (result, self.globalSort, self.pageNumber, self.numberOfJobs))
-    retVal = self.threadTask(WMSAdministratorClient().getSiteSummaryWeb,
+    retVal = yield self.threadTask(WMSAdministratorClient().getSiteSummaryWeb,
                                    result, [], self.pageNumber, self.numberOfJobs)
     gLogger.always("\033[0;31m YO: \033[0m", result)
     if retVal["OK"]:

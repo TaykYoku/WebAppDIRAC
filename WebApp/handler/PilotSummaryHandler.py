@@ -16,7 +16,7 @@ class PilotSummaryHandler(WebHandler):
     callback = {}
     req = self.__request()
 
-    result = self.threadTask(PilotManagerClient().getPilotSummaryWeb,
+    result = yield self.threadTask(PilotManagerClient().getPilotSummaryWeb,
                                    req, self.globalSort, self.pageNumber, self.numberOfJobs)
 
     if not result["OK"]:
@@ -92,7 +92,7 @@ class PilotSummaryHandler(WebHandler):
     if user == "Anonymous":
       self.finish({"success": "false", "result": [], "total": 0, "error": "Insufficient rights"})
     else:
-      result = self.threadTask(JobMonitoringClient().getSites)
+      result = yield self.threadTask(JobMonitoringClient().getSites)
       if result["OK"]:
         tier1 = gConfig.getValue("/WebApp/PreferredSites")
         if tier1:

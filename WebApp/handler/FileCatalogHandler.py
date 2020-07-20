@@ -106,7 +106,7 @@ class FileCatalogHandler(WebHandler):
     """
     self.L_NUMBER = 0
     self.S_NUMBER = 0
-    result = self.threadTask(self.fc.getMetadataFields)
+    result = yield self.threadTask(self.fc.getMetadataFields)
     gLogger.debug("request: %s" % result)
     if not result["OK"]:
       gLogger.error("getSelectorGrid: %s" % result["Message"])
@@ -185,7 +185,7 @@ class FileCatalogHandler(WebHandler):
 
     gLogger.always(compat)
 
-    result = self.threadTask(self.fc.getCompatibleMetadata, compat, path)
+    result = yield self.threadTask(self.fc.getCompatibleMetadata, compat, path)
     gLogger.always(result)
 
     if not result["OK"]:
@@ -199,7 +199,7 @@ class FileCatalogHandler(WebHandler):
     req = self.__request()
     gLogger.always(req)
     gLogger.debug("submit: incoming request %s" % req)
-    result = self.threadTask(self.fc.findFilesByMetadataWeb,
+    result = yield self.threadTask(self.fc.findFilesByMetadataWeb,
                                    req["selection"],
                                    req["path"],
                                    self.S_NUMBER,
@@ -401,7 +401,7 @@ class FileCatalogHandler(WebHandler):
     req = self.__request_file()
     gLogger.always(req)
     gLogger.debug("submit: incoming request %s" % req)
-    result = self.threadTask(self.fc.findFilesByMetadata, req["selection"], req["path"])
+    result = yield self.threadTask(self.fc.findFilesByMetadata, req["selection"], req["path"])
 
     if not result["OK"]:
       gLogger.error("submit: %s" % result["Message"])
@@ -426,7 +426,7 @@ class FileCatalogHandler(WebHandler):
   def web_getSubnodeFiles(self):
     path = self.request.arguments["path"][0]
 
-    result = self.threadTask(self.fc.listDirectory, path, False)
+    result = yield self.threadTask(self.fc.listDirectory, path, False)
     if not result["OK"]:
       gLogger.error("submit: %s" % result["Message"])
       self.finish({"success": "false", "error": result["Message"]})

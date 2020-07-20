@@ -24,7 +24,7 @@ class ProxyManagerHandler(WebHandler):
       for i in self.request.arguments:
         tmp[i] = str(self.request.arguments[i])
       callback["extra"] = tmp
-    result = self.threadTask(ProxyManagerClient().getUploadedProxiesDetails)  # pylint: disable=no-member
+    result = yield self.threadTask(ProxyManagerClient().getUploadedProxiesDetails)  # pylint: disable=no-member
     if not result["OK"]:
       self.finish({"success": "false", "error": result["Message"]})
     data = result["Value"]
@@ -68,7 +68,7 @@ class ProxyManagerHandler(WebHandler):
       self.finish({"success": "false", "error": "You are not authorize to access these data"})
     start, limit, sort, req = self.__request()
     # pylint: disable=no-member
-    result = self.threadTask(ProxyManagerClient().getDBContents, req, start, limit)
+    result = yield self.threadTask(ProxyManagerClient().getDBContents, req, start, limit)
     gLogger.info("*!*!*!  RESULT: \n%s" % result)
     if not result['OK']:
       self.finish({"success": "false", "error": result["Message"]})
@@ -99,7 +99,7 @@ class ProxyManagerHandler(WebHandler):
       spl = uid.split("@")
       dn = "@".join(spl[:-1])
       idList.append(dn)
-    retVal = self.threadTask(ProxyManagerClient().deleteProxy, idList)  # pylint: disable=no-member
+    retVal = yield self.threadTask(ProxyManagerClient().deleteProxy, idList)  # pylint: disable=no-member
     callback = {}
     if retVal['OK']:
       callback = {"success": "true", "result": retVal['Value']}

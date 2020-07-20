@@ -19,7 +19,7 @@ class ComponentHistoryHandler(WebHandler):
     req = self.__request()
 
     client = ComponentMonitoringClient()
-    result = self.threadTask(client.getInstallations, req['installation'], req['component'], req['host'], True)
+    result = yield self.threadTask(client.getInstallations, req['installation'], req['component'], req['host'], True)
     if result['OK']:
       values = []
       installations = result['Value']
@@ -70,7 +70,7 @@ class ComponentHistoryHandler(WebHandler):
     fields = ['name', 'host', 'module', 'system', 'type']
 
     client = ComponentMonitoringClient()
-    result = self.threadTask(client.getInstallations, {}, {}, {}, True)
+    result = yield self.threadTask(client.getInstallations, {}, {}, {}, True)
     if result['OK']:
       for field in fields:
         data[field] = set()

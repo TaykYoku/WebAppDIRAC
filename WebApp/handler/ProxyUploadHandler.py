@@ -125,7 +125,7 @@ class ProxyUploadHandler(WebHandler):
         name, keyDict["private"], keyDict["pem"], p12)
 
     for cmd in cmdCert, cmdKey:
-      result = self.threadTask(Subprocess.shellCall, 900, cmd)
+      result = yield self.threadTask(Subprocess.shellCall, 900, cmd)
       gLogger.debug("Command is: %s" % cmd)
       gLogger.debug("Result is: %s" % result)
       if not result["OK"]:

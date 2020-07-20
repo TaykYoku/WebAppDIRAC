@@ -53,7 +53,7 @@ class MonitoringHandler(WebHandler):
     callback = {}
     typeName = self.request.arguments["type"][0]
     # Get unique key values
-    retVal = self.threadTask(self.__getUniqueKeyValues, typeName)
+    retVal = yield self.threadTask(self.__getUniqueKeyValues, typeName)
     if not retVal['OK']:
       self.finish({"success": "false", "result": "", "error": retVal['Message']})
       return
@@ -75,7 +75,7 @@ class MonitoringHandler(WebHandler):
     data = MonitoringHandler.__keysCache.get("reportsList:%s" % typeName)
     if not data:
       repClient = MonitoringClient()
-      retVal = self.threadTask(repClient.listReports, typeName)
+      retVal = yield self.threadTask(repClient.listReports, typeName)
       if not retVal['OK']:
         self.finish({"success": "false", "result": "", "error": retVal['Message']})
         return
@@ -161,7 +161,7 @@ class MonitoringHandler(WebHandler):
   @asyncGen
   def web_generatePlot(self):
     callback = {}
-    retVal = self.threadTask(self.__queryForPlot)
+    retVal = yield self.threadTask(self.__queryForPlot)
     if retVal['OK']:
       callback = {'success': True, 'data': retVal['Value']['plot']}
     else:
@@ -196,7 +196,7 @@ class MonitoringHandler(WebHandler):
 
     transferClient = TransferClient("Monitoring/Monitoring")
     tempFile = tempfile.TemporaryFile()
-    retVal = self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
@@ -245,7 +245,7 @@ class MonitoringHandler(WebHandler):
 
     transferClient = TransferClient("Monitoring/Monitoring")
     tempFile = tempfile.TemporaryFile()
-    retVal = self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
@@ -271,7 +271,7 @@ class MonitoringHandler(WebHandler):
       self.finish(callback)
     params = retVal['Value']
     repClient = MonitoringClient(rpcClient=RPCClient("Monitoring/Monitoring"))
-    retVal = self.threadTask(repClient.getReport, *params)
+    retVal = yield self.threadTask(repClient.getReport, *params)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
@@ -309,7 +309,7 @@ class MonitoringHandler(WebHandler):
       self.finish(callback)
     params = retVal['Value']
     repClient = MonitoringClient(rpcClient=RPCClient("Monitoring/Monitoring"))
-    retVal = self.threadTask(repClient.getReport, *params)
+    retVal = yield self.threadTask(repClient.getReport, *params)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
