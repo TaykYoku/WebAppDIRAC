@@ -51,7 +51,7 @@ class AuthenticationHandler(WebHandler):
 
     result = S_ERROR('Timeout')
     for i in range(4):
-      result = yield self.threadTask(gSessionManager.getSessionStatus, session)
+      result = self.threadTask(gSessionManager.getSessionStatus, session)
       if not result['OK']:
         break
       status = result['Value']['Status']

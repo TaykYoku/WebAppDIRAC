@@ -29,7 +29,7 @@ class SystemAdministrationHandler(WebHandler):
     """
     client = SystemAdministratorIntegrator( delegatedDN = DN ,
                                           delegatedGroup = group )
-    resultHosts = yield self.threadTask( client.getHostInfo )
+    resultHosts = self.threadTask( client.getHostInfo )
     if resultHosts[ "OK" ]:
       hosts = resultHosts['Value']
       for i in hosts:
@@ -54,7 +54,7 @@ class SystemAdministrationHandler(WebHandler):
         host = obj['HostName']
         client = SystemAdministratorClient(host, None, delegatedDN=DN,
                                            delegatedGroup=group)
-        resultHost = yield self.threadTask(client.getHostInfo)
+        resultHost = self.threadTask(client.getHostInfo)
         if resultHost["OK"]:
           resultHost["Value"]["Host"] = host
           if "Timestamp" in resultHost["Value"]:
@@ -99,7 +99,7 @@ class SystemAdministrationHandler(WebHandler):
     host = self.request.arguments["hostname"][0]
     client = SystemAdministratorClient(host, None, delegatedDN=DN,
                                        delegatedGroup=group)
-    result = yield self.threadTask(client.getOverallStatus)
+    result = self.threadTask(client.getOverallStatus)
     gLogger.debug("Result of getOverallStatus(): %s" % result)
 
     if not result["OK"]:
@@ -141,7 +141,7 @@ class SystemAdministrationHandler(WebHandler):
 
     client = SystemAdministratorClient(host, None, delegatedDN=DN, delegatedGroup=group)
 
-    result = yield self.threadTask(client.checkComponentLog, "*")
+    result = self.threadTask(client.checkComponentLog, "*")
 
     gLogger.debug(result)
     if not result["OK"]:
@@ -183,7 +183,7 @@ class SystemAdministrationHandler(WebHandler):
 
     client = SystemAdministratorClient(host, None, delegatedDN=DN, delegatedGroup=group)
 
-    result = yield self.threadTask(client.getLogTail, system, name)
+    result = self.threadTask(client.getLogTail, system, name)
     gLogger.debug(result)
 
     if not result["OK"]:
@@ -229,11 +229,11 @@ class SystemAdministrationHandler(WebHandler):
       client = SystemAdministratorClient(str(i), None, delegatedDN=DN,
                                          delegatedGroup=group)
       if action == "restart":
-        result = yield self.threadTask(client.restartComponent, str("*"), str("*"))
+        result = self.threadTask(client.restartComponent, str("*"), str("*"))
       elif action == "revert":
-        result = yield self.threadTask(client.revertSoftware)
+        result = self.threadTask(client.revertSoftware)
       elif action == "update":
-        result = yield self.threadTask(client.updateSoftware, version, '', '', timeout=300)
+        result = self.threadTask(client.updateSoftware, version, '', '', timeout=300)
       else:
         error = i + ": Action %s is not defined" % action
         actionFailed.append(error)
@@ -321,11 +321,11 @@ class SystemAdministrationHandler(WebHandler):
 
         try:
           if action == "restart":
-            result = yield self.threadTask(client.restartComponent, system, component)
+            result = self.threadTask(client.restartComponent, system, component)
           elif action == "start":
-            result = yield self.threadTask(client.startComponent, system, component)
+            result = self.threadTask(client.startComponent, system, component)
           elif action == "stop":
-            result = yield self.threadTask(client.stopComponent, system, component)
+            result = self.threadTask(client.stopComponent, system, component)
           else:
             result = dict(OK=False)
             result["Message"] = "Action %s is not valid" % action

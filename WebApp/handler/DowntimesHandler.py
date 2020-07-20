@@ -23,7 +23,7 @@ class DowntimesHandler(WebHandler):
 
     gLogger.info(self.request.arguments)
 
-    downtimes = yield self.threadTask(PublisherClient().getCachedDowntimes, None, None, None, None)
+    downtimes = self.threadTask(PublisherClient().getCachedDowntimes, None, None, None, None)
 
     if downtimes['OK']:
 
@@ -34,7 +34,7 @@ class DowntimesHandler(WebHandler):
         callback['name'].add(dt['Name'])
         callback['severity'].add(dt['Severity'])
 
-    sites = yield self.threadTask(PublisherClient().getSites)
+    sites = self.threadTask(PublisherClient().getSites)
     if sites['OK']:
 
       callback['site'] = sites['Value']
@@ -54,7 +54,7 @@ class DowntimesHandler(WebHandler):
     requestParams = self.__requestParams()
     gLogger.info(requestParams)
 
-    retVal = yield self.threadTask(PublisherClient().getSitesResources, list(requestParams['site']))
+    retVal = self.threadTask(PublisherClient().getSitesResources, list(requestParams['site']))
 
     sitesResources = ""
     if not retVal['OK']:

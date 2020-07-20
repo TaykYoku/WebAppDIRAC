@@ -29,7 +29,7 @@ class TransformationMonitorHandler(WebHandler):
 
   ####
       tsClient = TransformationClient()
-      result = yield self.threadTask(tsClient.getDistinctAttributeValues, "Plugin", {})
+      result = self.threadTask(tsClient.getDistinctAttributeValues, "Plugin", {})
 
       if result["OK"]:
         plugin = []
@@ -42,7 +42,7 @@ class TransformationMonitorHandler(WebHandler):
         plugin = "Error during RPC call"
       callback["plugin"] = plugin
   ####
-      result = yield self.threadTask(tsClient.getDistinctAttributeValues, "Status", {})
+      result = self.threadTask(tsClient.getDistinctAttributeValues, "Status", {})
       if result["OK"]:
         status = []
         if len(result["Value"]) > 0:
@@ -54,7 +54,7 @@ class TransformationMonitorHandler(WebHandler):
         status = "Error during RPC call"
       callback["prodStatus"] = status
   ####
-      result = yield self.threadTask(tsClient.getDistinctAttributeValues, "TransformationGroup", {})
+      result = self.threadTask(tsClient.getDistinctAttributeValues, "TransformationGroup", {})
       if result["OK"]:
         group = []
         if len(result["Value"]) > 0:
@@ -66,7 +66,7 @@ class TransformationMonitorHandler(WebHandler):
         group = "Error during RPC call"
       callback["transformationGroup"] = group
   ####
-      result = yield self.threadTask(tsClient.getDistinctAttributeValues, "AgentType", {})
+      result = self.threadTask(tsClient.getDistinctAttributeValues, "AgentType", {})
       if result["OK"]:
         atype = []
         if len(result["Value"]) > 0:
@@ -78,7 +78,7 @@ class TransformationMonitorHandler(WebHandler):
         atype = "Error during RPC call"
       callback["agentType"] = atype
   ####
-      result = yield self.threadTask(tsClient.getDistinctAttributeValues, "Type", {})
+      result = self.threadTask(tsClient.getDistinctAttributeValues, "Type", {})
       if result["OK"]:
         transType = []
         if result["Value"]:
@@ -105,7 +105,7 @@ class TransformationMonitorHandler(WebHandler):
     else:
       result = self._request()
 
-      result = yield self.threadTask(tsClient.getTransformationSummaryWeb,
+      result = self.threadTask(tsClient.getTransformationSummaryWeb,
                                      result, self.globalSort, self.pageNumber, self.numberOfJobs)
       if not result["OK"]:
         self.finish(json.dumps({"success": "false", "error": result["Message"]}))
@@ -166,25 +166,25 @@ class TransformationMonitorHandler(WebHandler):
     callback = {}
 
     if self.request.arguments["data_kind"][0] == "getLoggingInfo":
-      callback = yield self.threadTask(self.__getLoggingInfo, transid)
+      callback = self.threadTask(self.__getLoggingInfo, transid)
     elif self.request.arguments["data_kind"][0] == "fileStatus":
-      callback = yield self.threadTask(self.__transformationFileStatus, transid)
+      callback = self.threadTask(self.__transformationFileStatus, transid)
     elif self.request.arguments["data_kind"][0] == "fileProcessed":
-      callback = yield self.threadTask(self.__fileRetry, transid, 'proc')
+      callback = self.threadTask(self.__fileRetry, transid, 'proc')
     elif self.request.arguments["data_kind"][0] == "fileNotProcessed":
-      callback = yield self.threadTask(self.__fileRetry, transid, 'not')
+      callback = self.threadTask(self.__fileRetry, transid, 'not')
     elif self.request.arguments["data_kind"][0] == "fileAllProcessed":
-      callback = yield self.threadTask(self.__fileRetry, transid, 'all')
+      callback = self.threadTask(self.__fileRetry, transid, 'all')
     elif self.request.arguments["data_kind"][0] == "dataQuery":
-      callback = yield self.threadTask(self.__dataQuery, transid)
+      callback = self.threadTask(self.__dataQuery, transid)
     elif self.request.arguments["data_kind"][0] == "additionalParams":
-      callback = yield self.threadTask(self.__additionalParams, transid)
+      callback = self.threadTask(self.__additionalParams, transid)
     elif self.request.arguments["data_kind"][0] == "transformationDetail":
-      callback = yield self.threadTask(self.__transformationDetail, transid)
+      callback = self.threadTask(self.__transformationDetail, transid)
     elif self.request.arguments["data_kind"][0] == "extend":
-      callback = yield self.threadTask(self.__extendTransformation, transid)
+      callback = self.threadTask(self.__extendTransformation, transid)
     elif self.request.arguments["data_kind"][0] == "workflowxml":
-      callback = yield self.threadTask(self.__workflowxml, transid)
+      callback = self.threadTask(self.__workflowxml, transid)
     else:
       callback = {"success": "false", "error": "Action is unknown!!!"}
     self.finish(callback)
@@ -224,11 +224,11 @@ class TransformationMonitorHandler(WebHandler):
       try:
         transid = int(i)
 
-        result = yield self.threadTask(tsClient.setTransformationParameter, transid, 'Status', status)
+        result = self.threadTask(tsClient.setTransformationParameter, transid, 'Status', status)
 
         if result["OK"]:
           resString = "ProdID: %s set to %s successfully" % (i, cmd)
-          result = yield self.threadTask(tsClient.setTransformationParameter, transid, 'AgentType', agentType)
+          result = self.threadTask(tsClient.setTransformationParameter, transid, 'AgentType', agentType)
           if not result["OK"]:
             resString = "ProdID: %s failed to set to %s: %s" % (i, cmd, result["Message"])
         else:
@@ -424,7 +424,7 @@ class TransformationMonitorHandler(WebHandler):
       raise WErr(400, "Missing %s" % excp)
 
     tsClient = TransformationClient()
-    result = yield self.threadTask(tsClient.getTransformationFilesSummaryWeb,
+    result = self.threadTask(tsClient.getTransformationFilesSummaryWeb,
                                    {'TransformationID': transid,
                                     'Status': status},
                                    [["FileID", "ASC"]], start, limit)
@@ -487,7 +487,7 @@ class TransformationMonitorHandler(WebHandler):
     gLogger.info("\033[0;31m setTransformationRunsSite(%s, %s, %s) \033[0m" % (transID, runID, site))
 
     tsClient = TransformationClient()
-    result = yield self.threadTask(tsClient.setTransformationRunsSite, transID, runID, site)
+    result = self.threadTask(tsClient.setTransformationRunsSite, transID, runID, site)
 
     if result["OK"]:
       callback = {"success": "true", "result": "true"}

@@ -22,7 +22,7 @@ class SpaceOccupancyHandler(WebHandler):
 
     gLogger.info(self.request.arguments)
 
-    spaces = yield self.threadTask(rmc.selectSpaceTokenOccupancyCache)
+    spaces = self.threadTask(rmc.selectSpaceTokenOccupancyCache)
 
     if spaces['OK']:
       for sp in spaces['Value']:
@@ -40,7 +40,7 @@ class SpaceOccupancyHandler(WebHandler):
 
     rmc = ResourceManagementClient()
 
-    res = yield self.threadTask(rmc.selectSpaceTokenOccupancyCache, None, self.__requestParams())
+    res = self.threadTask(rmc.selectSpaceTokenOccupancyCache, None, self.__requestParams())
 
     if not res['OK']:
       raise WErr.fromSERROR(res)

@@ -147,7 +147,7 @@ class JobLaunchpadHandler(WebHandler):
     if "NormalUser" not in self.getProperties():
       self.finish({"success": "false", "error": "You are not allowed to run the jobs"})
       return
-    proxy = yield self.threadTask(self.__getProxyStatus, 86460)
+    proxy = self.threadTask(self.__getProxyStatus, 86460)
     if proxy["success"] == "false" or proxy["result"] == "false":
       self.finish({"success": "false", "error": "You can not run a job: your proxy is valid less then 24 hours"})
       return
@@ -235,7 +235,7 @@ class JobLaunchpadHandler(WebHandler):
       jdl = str(jdl)
       gLogger.info("J D L : ", jdl)
       try:
-        result = yield self.threadTask(jobManager.submitJob, jdl)
+        result = self.threadTask(jobManager.submitJob, jdl)
         if result["OK"]:
           callback = {"success": "true", "result": result["Value"]}
         else:

@@ -29,7 +29,7 @@ class ResourceSummaryHandler(WebHandler):
     pub = PublisherClient()
 
     gLogger.info(self.request.arguments)
-    elementStatuses = yield self.threadTask(pub.getElementStatuses, self.ELEMENT_TYPE, None, None, None, None, None)
+    elementStatuses = self.threadTask(pub.getElementStatuses, self.ELEMENT_TYPE, None, None, None, None, None)
 
     if elementStatuses['OK']:
 
@@ -57,7 +57,7 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = PublisherClient()
 
-    elementStatuses = yield self.threadTask(pub.getElementStatuses, self.ELEMENT_TYPE,
+    elementStatuses = self.threadTask(pub.getElementStatuses, self.ELEMENT_TYPE,
                                             requestParams['name'],
                                             requestParams['elementType'],
                                             requestParams['statusType'],
@@ -153,7 +153,7 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = PublisherClient()
 
-    elements = yield self.threadTask(pub.getElementStatuses, self.ELEMENT_TYPE,
+    elements = self.threadTask(pub.getElementStatuses, self.ELEMENT_TYPE,
                                      requestParams['name'],
                                      None, None, None, None)
     if not elements['OK']:
@@ -196,7 +196,7 @@ class ResourceSummaryHandler(WebHandler):
       self.finish({'success': 'false', 'error': 'Not authorized'})
 
     pub = PublisherClient()
-    res = yield self.threadTask(pub.setToken, self.ELEMENT_TYPE,
+    res = self.threadTask(pub.setToken, self.ELEMENT_TYPE,
                                 str(requestParams['name'][0]),
                                 str(requestParams['statusType'][0]),
                                 str(requestParams['status'][0]),
@@ -219,7 +219,7 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = PublisherClient()
 
-    res = yield self.threadTask(pub.setStatus, self.ELEMENT_TYPE,
+    res = self.threadTask(pub.setStatus, self.ELEMENT_TYPE,
                                 str(requestParams['name'][0]),
                                 str(requestParams['statusType'][0]),
                                 str(requestParams['status'][0]),
@@ -243,7 +243,7 @@ class ResourceSummaryHandler(WebHandler):
       self.finish({'success': 'false', 'error': 'Missing statusType'})
 
     pub = PublisherClient()
-    res = yield self.threadTask(pub.getElementHistory,
+    res = self.threadTask(pub.getElementHistory,
                                 self.ELEMENT_TYPE,
                                 requestParams['name'],
                                 requestParams['elementType'],
@@ -266,7 +266,7 @@ class ResourceSummaryHandler(WebHandler):
       self.finish({'success': 'false', 'error': 'Missing statusType'})
 
     pub = PublisherClient()
-    res = yield self.threadTask(pub.getElementPolicies,
+    res = self.threadTask(pub.getElementPolicies,
                                 self.ELEMENT_TYPE,
                                 requestParams['name'],
                                 requestParams['statusType'])
@@ -293,7 +293,7 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = PublisherClient()
 
-    res = yield self.threadTask(pub.getDowntimes,
+    res = self.threadTask(pub.getDowntimes,
                                 str(requestParams['element'][-1]),
                                 str(requestParams['elementType'][-1]),
                                 str(requestParams['name'][-1]))
@@ -317,7 +317,7 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = PublisherClient()
 
-    res = yield self.threadTask(pub.getElementHistory,
+    res = self.threadTask(pub.getElementHistory,
                                 self.ELEMENT_TYPE,
                                 str(requestParams['name'][-1]),
                                 str(requestParams['elementType'][-1]),
@@ -348,7 +348,7 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = PublisherClient()
 
-    res = yield self.threadTask(pub.getTree, str(requestParams['elementType'][-1]), str(requestParams['name'][-1]))
+    res = self.threadTask(pub.getTree, str(requestParams['elementType'][-1]), str(requestParams['name'][-1]))
     if not res['OK']:
       gLogger.error(res['Message'])
       self.finish({'success': 'false', 'error': 'error getting tree'})
@@ -386,7 +386,7 @@ class ResourceSummaryHandler(WebHandler):
 
     pub = PublisherClient()
 
-    res = yield self.threadTask(pub.getElementStatuses, str(requestParams['element'][-1]),
+    res = self.threadTask(pub.getElementStatuses, str(requestParams['element'][-1]),
                                 str(requestParams['name'][-1]),
                                 str(requestParams['elementType'][-1]),
                                 str(requestParams['statusType'][-1]),

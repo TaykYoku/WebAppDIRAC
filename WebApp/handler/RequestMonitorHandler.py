@@ -15,7 +15,7 @@ class RequestMonitorHandler(WebHandler):
     callback = {}
     req = self.__request()
 
-    result = yield self.threadTask(RPC.getRequestSummaryWeb, req, self.globalSort, self.pageNumber, self.numberOfJobs)
+    result = self.threadTask(RPC.getRequestSummaryWeb, req, self.globalSort, self.pageNumber, self.numberOfJobs)
 
     if not result["OK"]:
       self.finish({"success": "false", "result": [], "total": 0, "error": result["Message"]})
@@ -98,7 +98,7 @@ class RequestMonitorHandler(WebHandler):
     else:
       RPC = RPCClient("RequestManagement/ReqManager")
   # R E Q U E S T T Y P E
-      result = yield self.threadTask(RPC.getDistinctValuesWeb, "Type")
+      result = self.threadTask(RPC.getDistinctValuesWeb, "Type")
       if result["OK"]:
         reqtype = list()
         if len(result["Value"]) > 0:
@@ -110,7 +110,7 @@ class RequestMonitorHandler(WebHandler):
         reqtype = [["Error during RPC call"]]
       callback["operationType"] = reqtype
   # U S E R
-      result = yield self.threadTask(RPC.getDistinctValuesWeb, "OwnerDN")
+      result = self.threadTask(RPC.getDistinctValuesWeb, "OwnerDN")
 
       if result["OK"]:
         owner = []
@@ -123,7 +123,7 @@ class RequestMonitorHandler(WebHandler):
         owner = [["Error during RPC call"]]
       callback["owner"] = owner
   # G R O U P
-      result = yield self.threadTask(RPC.getDistinctValuesWeb, "OwnerGroup")
+      result = self.threadTask(RPC.getDistinctValuesWeb, "OwnerGroup")
       gLogger.info("getDistinctValuesWeb(OwnerGroup)", result)
       if result["OK"]:
         ownerGroup = list()
@@ -136,7 +136,7 @@ class RequestMonitorHandler(WebHandler):
         ownerGroup = [["Error during RPC call"]]
       callback["ownerGroup"] = ownerGroup
   # S T A T U S
-      result = yield self.threadTask(RPC.getDistinctValuesWeb, "Status")
+      result = self.threadTask(RPC.getDistinctValuesWeb, "Status")
 
       if result["OK"]:
         status = list()

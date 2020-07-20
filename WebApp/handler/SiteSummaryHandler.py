@@ -26,7 +26,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
 
     pub = PublisherClient()
 
-    elementStatuses = yield self.threadTask(pub.getElementStatuses, 'Site',
+    elementStatuses = self.threadTask(pub.getElementStatuses, 'Site',
                                             requestParams['name'],
                                             requestParams['elementType'],
                                             requestParams['statusType'],
@@ -60,7 +60,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
 
     pub = PublisherClient()
 
-    elementStatuses = yield self.threadTask(pub.getElementStatuses,
+    elementStatuses = self.threadTask(pub.getElementStatuses,
                                             'Site',
                                             str(elementName),
                                             None,
@@ -207,7 +207,7 @@ class SiteSummaryHandler(ResourceSummaryHandler):
     elementName = requestParams['name'][0]
     pub = PublisherClient()
 
-    elementStatuses = yield self.threadTask(pub.getElementStatuses,
+    elementStatuses = self.threadTask(pub.getElementStatuses,
                                             'Site',
                                             str(elementName),
                                             None,

@@ -54,7 +54,7 @@ class AccountingHandler(WebHandler):
     callback = {}
     typeName = self.request.arguments["type"][0]
     # Get unique key values
-    retVal = yield self.threadTask(self.__getUniqueKeyValues, typeName)
+    retVal = self.threadTask(self.__getUniqueKeyValues, typeName)
     if not retVal['OK']:
       self.finish({"success": "false", "result": "", "error": retVal['Message']})
       return
@@ -75,7 +75,7 @@ class AccountingHandler(WebHandler):
     data = AccountingHandler.__keysCache.get("reportsList:%s" % typeName)
     if not data:
       repClient = ReportsClient()
-      retVal = yield self.threadTask(repClient.listReports, typeName)
+      retVal = self.threadTask(repClient.listReports, typeName)
       if not retVal['OK']:
         self.finish({"success": "false", "result": "", "error": retVal['Message']})
         return
@@ -162,7 +162,7 @@ class AccountingHandler(WebHandler):
   @asyncGen
   def web_generatePlot(self):
     callback = {}
-    retVal = yield self.threadTask(self.__queryForPlot)
+    retVal = self.threadTask(self.__queryForPlot)
     if retVal['OK']:
       callback = {'success': True, 'data': retVal['Value']['plot']}
     else:
@@ -196,7 +196,7 @@ class AccountingHandler(WebHandler):
 
     transferClient = TransferClient("Accounting/ReportGenerator")
     tempFile = tempfile.TemporaryFile()
-    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    retVal = self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
@@ -248,7 +248,7 @@ class AccountingHandler(WebHandler):
 
     transferClient = TransferClient("Accounting/ReportGenerator")
     tempFile = tempfile.TemporaryFile()
-    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    retVal = self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
@@ -273,7 +273,7 @@ class AccountingHandler(WebHandler):
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
     params = retVal['Value']
-    retVal = yield self.threadTask(ReportsClient().getReport, *params)
+    retVal = self.threadTask(ReportsClient().getReport, *params)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
@@ -310,7 +310,7 @@ class AccountingHandler(WebHandler):
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
     params = retVal['Value']
-    retVal = yield self.threadTask(ReportsClient().getReport, *params)
+    retVal = self.threadTask(ReportsClient().getReport, *params)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)

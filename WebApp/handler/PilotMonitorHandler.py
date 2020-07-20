@@ -16,7 +16,7 @@ class PilotMonitorHandler(WebHandler):
   def web_getPilotData(self):
     req = self.__request()
 
-    result = yield self.threadTask(PilotManagerClient().getPilotMonitorWeb,
+    result = self.threadTask(PilotManagerClient().getPilotMonitorWeb,
                                    req, self.globalSort, self.pageNumber, self.numberOfJobs)
 
     if not result["OK"]:
@@ -79,7 +79,7 @@ class PilotMonitorHandler(WebHandler):
         tmp[i] = str(self.request.arguments[i][0]).replace('"', '')
       callback["extra"] = tmp
 
-    result = yield self.threadTask(PilotManagerClient().getPilotMonitorSelectors)
+    result = self.threadTask(PilotManagerClient().getPilotMonitorSelectors)
 
     if result["OK"]:
       result = result["Value"]
@@ -232,13 +232,13 @@ class PilotMonitorHandler(WebHandler):
 
     RPC = PilotManagerClient()
     if self.request.arguments["data_kind"][0] == "getPilotOutput":
-      result = yield self.threadTask(RPC.getPilotOutput, data)
+      result = self.threadTask(RPC.getPilotOutput, data)
       if result["OK"]:
         callback = {"success": "true", "result": result["Value"]["StdOut"]}
       else:
         callback = {"success": "false", "error": result["Message"]}
     elif self.request.arguments["data_kind"][0] == "getPilotError":
-      result = yield self.threadTask(RPC.getPilotOutput, data)
+      result = self.threadTask(RPC.getPilotOutput, data)
       if result["OK"]:
         if len(result["Value"]["StdErr"]) > 0:
           callback = {"success": "true", "result": result["Value"]["StdErr"]}
@@ -247,7 +247,7 @@ class PilotMonitorHandler(WebHandler):
       else:
         callback = {"success": "false", "error": result["Message"]}
     elif self.request.arguments["data_kind"][0] == "getLoggingInfo":
-      result = yield self.threadTask(RPC.getPilotLoggingInfo, data)
+      result = self.threadTask(RPC.getPilotLoggingInfo, data)
       if result["OK"]:
         callback = {"success": "true", "result": result["Value"]}
       else:
@@ -274,7 +274,7 @@ class PilotMonitorHandler(WebHandler):
     elif selector == "Owner":
       selector = "OwnerDN"
 
-    result = yield self.threadTask(RPC.getPilotStatistics, selector, req)
+    result = self.threadTask(RPC.getPilotStatistics, selector, req)
     if not result['OK']:
       if 'FromDate' in req:
         del req['FromDate']
@@ -285,7 +285,7 @@ class PilotMonitorHandler(WebHandler):
       if 'ToDate' in req:
         del req['ToDate']
 
-      result = yield self.threadTask(RPC.getCounters, "PilotAgents", [selector], req)
+      result = self.threadTask(RPC.getCounters, "PilotAgents", [selector], req)
 
       statistics = {}
       if result['OK']:

@@ -33,7 +33,7 @@ class ActivityMonitorHandler(WebHandler):
       sort = []
 
     rpcClient = RPCClient("Framework/Monitoring")
-    retVal = yield self.threadTask(rpcClient.getActivitiesContents, {}, sort, start, limit)
+    retVal = self.threadTask(rpcClient.getActivitiesContents, {}, sort, start, limit)
 
     if not retVal['OK']:
       self.finish({"success": "false", "result": [], "total": -1, "error": retVal["Message"]})
@@ -86,7 +86,7 @@ class ActivityMonitorHandler(WebHandler):
       return
 
     rpcClient = RPCClient("Framework/Monitoring")
-    retVal = yield self.threadTask(rpcClient.plotView, plotRequest)
+    retVal = self.threadTask(rpcClient.plotView, plotRequest)
 
     if retVal['OK']:
       self.finish({'success': "true", 'data': retVal['Value']})
@@ -96,7 +96,7 @@ class ActivityMonitorHandler(WebHandler):
   @asyncGen
   def web_getStaticPlotViews(self):
     rpcClient = RPCClient("Framework/Monitoring")
-    retVal = yield self.threadTask(rpcClient.getViews, True)
+    retVal = self.threadTask(rpcClient.getViews, True)
     if not retVal["OK"]:
       self.finish({"success": "false", "error": retVal["Message"]})
     else:
@@ -119,7 +119,7 @@ class ActivityMonitorHandler(WebHandler):
       return
     transferClient = TransferClient("Framework/Monitoring")
     tempFile = tempfile.TemporaryFile()
-    retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
+    retVal = self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
       self.finish(callback)
@@ -139,7 +139,7 @@ class ActivityMonitorHandler(WebHandler):
     fieldQuery = str(self.request.arguments['queryField'][0])
     definedFields = json.loads(self.request.arguments['selectedFields'][0])
     rpcClient = RPCClient("Framework/Monitoring")
-    result = yield self.threadTask(rpcClient.queryField, fieldQuery, definedFields)
+    result = self.threadTask(rpcClient.queryField, fieldQuery, definedFields)
     if 'rpcStub' in result:
       del(result['rpcStub'])
 
@@ -166,7 +166,7 @@ class ActivityMonitorHandler(WebHandler):
 
     rpcClient = RPCClient("Framework/Monitoring")
 
-    retVal = yield self.threadTask(rpcClient.deleteActivities, idList)
+    retVal = self.threadTask(rpcClient.deleteActivities, idList)
 
     if 'rpcStub' in retVal:
       del(retVal['rpcStub'])
@@ -208,7 +208,7 @@ class ActivityMonitorHandler(WebHandler):
 
     rpcClient = RPCClient("Framework/Monitoring")
     requestStub = DEncode.encode(plotRequest)
-    retVal = yield self.threadTask(rpcClient.tryView, fromSecs, toSecs, requestStub)
+    retVal = self.threadTask(rpcClient.tryView, fromSecs, toSecs, requestStub)
     if not retVal['OK']:
       self.finish({"success": "false", "error": retVal["Message"]})
       return
@@ -227,7 +227,7 @@ class ActivityMonitorHandler(WebHandler):
       self.finish({"success": "false", "error": "Error while processing plot parameters: %s" % str(e)})
     rpcClient = RPCClient("Framework/Monitoring")
     requestStub = DEncode.encode(plotRequest)
-    result = yield self.threadTask(rpcClient.saveView, viewName, requestStub)
+    result = self.threadTask(rpcClient.saveView, viewName, requestStub)
     if 'rpcStub' in result:
       del(result['rpcStub'])
 
