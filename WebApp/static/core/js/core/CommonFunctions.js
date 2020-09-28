@@ -36,9 +36,12 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
   auth: function(authProvider, inthread) {
     var me = this;
     Ext.Ajax.request({
+      method: 'GET',
       url: GLOBAL.BASE_URL + "auth/authorization/" + authProvider, //"Authentication/auth",
       params: {
         group: GLOBAL.APP.configData.user.group,
+        response_type: 'code',
+        client_id: 'p1egPYSMTnsdu0C0wSEdosJn',
         // typeauth: authProvider,
         // inthread: inthread ?? null
       },
