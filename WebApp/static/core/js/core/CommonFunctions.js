@@ -36,14 +36,17 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
   auth: function(authProvider, inthread) {
     var me = this;
     Ext.Ajax.request({
-      url: GLOBAL.BASE_URL + "Authentication/auth",
+      url: GLOBAL.BASE_URL + "auth/authorization/" + authProvider, //"Authentication/auth",
       params: {
-        typeauth: authProvider,
-        inthread: inthread ?? null
+        group: GLOBAL.APP.configData.user.group,
+        // typeauth: authProvider,
+        // inthread: inthread ?? null
       },
       scope: me,
       success: function(response) {
         var me = this;
+        me.log("debug", 'RESPONSE: "' + response.responseText + '"');
+        console.log(response)
         if (!response.status == 200) {
           return me.alert(response.statusText, "error");
         } else {
