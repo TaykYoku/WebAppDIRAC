@@ -39,7 +39,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
       method: 'GET',
       url: GLOBAL.BASE_URL + "auth/authorization/" + authProvider, //"Authentication/auth",
       params: {
-        group: GLOBAL.APP.configData.user.group,
+        group: GLOBAL.APP.configData.user.group ? GLOBAL.APP.configData.user.group : '',
         response_type: 'code',
         client_id: 'dbuAjSyFKTdWWsCVTIg3FUmR8j8TCDZHDp5WQRUoeS',
         redirect_uri: 'https://marosvn32.in2p3.fr/DIRAC/'
