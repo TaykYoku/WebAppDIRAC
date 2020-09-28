@@ -41,7 +41,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
       params: {
         group: GLOBAL.APP.configData.user.group != 'visitor' ? GLOBAL.APP.configData.user.group : '',
         response_type: 'code',
-        client_id: 'YYDTWMBDLLX15DVqkFdy6EDWVrciozIxwUnYzxrYLH',
+        client_id: 'q4jKlPqKhhTkBZyNIEeeY4HzqfjDL7D0eZYsOGERPu',
         redirect_uri: 'https://marosvn32.in2p3.fr/DIRAC/'
         // typeauth: authProvider,
         // inthread: inthread ?? null
