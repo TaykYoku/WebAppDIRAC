@@ -93,8 +93,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
         // });
     });
     manager.signinPopup().catch(function(error){
-      console.log("error", 'error while logging in through the popup');
-      Oidc.Log.logger.error("error: " + error && error.message);
+      console.log(error);
       console.log("error: " + error && error.message);
     });
     // }; 
