@@ -10,8 +10,8 @@
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/StackBlur.js"></script>
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/canvg-1.3/canvg.js"></script>
 	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/FileSaver/FileSaver.js"></script>
-	  <script type="text/javascript" src="{{base_url}}/static/oidc/oidc-client/dist/oidc-client.js"></script>
-    
+	  <script type="text/javascript" src="{{base_url}}/static/core/js/utils/oidc/oidc-client.min.js"></script>
+
 	  {% if bugReportURL!='' %}
 	  {% for item in bugReportURL.split(',') %}
          <script type="text/javascript" src="{{escape(item)}}"></script>
