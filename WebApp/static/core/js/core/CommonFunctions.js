@@ -92,8 +92,11 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
         //   }
         // });
     });
-    manager.signinPopup().catch(function(error){ GLOBAL.APP.CF.log("error",
-    'error while logging in through the popup'); });
+    manager.signinPopup().catch(function(error){
+      console.log("error", 'error while logging in through the popup');
+      Oidc.Log.logger.error("error: " + err && err.message);
+      console.log("error: " + err && err.message);
+    });
     // }; 
     //
     // var me = this;
