@@ -92,7 +92,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
         //   }
         // });
     });
-    manager.signinPopup().catch(function(error){
+    manager.signinSilent().catch(function(error){
       console.log(error);
       console.log("error: " + error && error.message);
     });
