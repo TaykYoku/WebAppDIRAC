@@ -3,7 +3,7 @@ import os
 import urlparse
 
 from tornado.escape import xhtml_escape
-
+from tornado import template
 from DIRAC import rootPath, gLogger
 
 from DIRAC.Core.Web import Conf
