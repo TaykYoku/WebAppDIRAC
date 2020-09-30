@@ -64,6 +64,27 @@ class RootHandler(WebHandler):
 
   def web_getConfigData(self):
     self.finish(self.getSessionData())
+  
+  def web_loginComplete(self):
+    print('------ web_loginComplete --------')
+    print(self.request.arguments)
+    print(self.request.headers)
+    t = template.Template('''<!DOCTYPE html>
+      <html>
+        <head>
+          <title>Authetication</title>
+          <meta charset="utf-8" />
+        </head>
+        <body>
+          <script src="oidc-client.js"></script>
+          <script> 
+            new Oidc.UserManager().signinRedirectCallback().then(function () {
+              window.location = "index.html";
+            }).catch(function (e) { console.error(e); });
+          </script>
+        </body>
+      </html>''')
+    self.finish(t.generate())
 
   def web_index(self):
     # Render base template
