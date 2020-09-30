@@ -81,7 +81,7 @@ class RootHandler(WebHandler):
           <script type="text/javascript" src="{{base_url}}/static/core/js/utils/oidc/oidc-client.min.js"></script>
           <script> 
             new Oidc.UserManager().signinRedirectCallback().then(function () {
-              window.location = "index.html";
+              window.location = "/";
             }).catch(function (e) { console.error(e); });
           </script>
         </body>
