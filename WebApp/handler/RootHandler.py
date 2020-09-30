@@ -69,6 +69,8 @@ class RootHandler(WebHandler):
     print('------ web_loginComplete --------')
     print(self.request.arguments)
     print(self.request.headers)
+    print(self.request.hash)
+    data = self.getSessionData()
     t = template.Template('''<!DOCTYPE html>
       <html>
         <head>
@@ -76,7 +78,7 @@ class RootHandler(WebHandler):
           <meta charset="utf-8" />
         </head>
         <body>
-          <script src="oidc-client.js"></script>
+          <script type="text/javascript" src="{{base_url}}/static/core/js/utils/oidc/oidc-client.min.js"></script>
           <script> 
             new Oidc.UserManager().signinRedirectCallback().then(function () {
               window.location = "index.html";
@@ -84,7 +86,7 @@ class RootHandler(WebHandler):
           </script>
         </body>
       </html>''')
-    self.finish(t.generate())
+    self.finish(t.generate(base_url=data['baseURL']))
 
   def web_index(self):
     # Render base template
