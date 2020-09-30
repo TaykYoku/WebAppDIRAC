@@ -37,6 +37,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     // OIDC login method
     // var oAuth2LogIn = function(settings,name) {
     var settings = GLOBAL.APP.configData.configuration.AuthorizationClient;
+    Oidc.Log.logger = console;
     var manager = new Oidc.UserManager(GLOBAL.APP.configData.configuration.AuthorizationClient);
     manager.events.addUserLoaded(function (loadedUser) { console.log(loadedUser); });
     manager.events.addSilentRenewError(function (error) {
