@@ -67,6 +67,7 @@ class RootHandler(WebHandler):
   
   def web_loginComplete(self):
     print('------ web_loginComplete --------')
+    # TODO: create here session "state" 
     print(self.request.arguments)
     print(self.request.headers)
     # print(self.request.hash)
@@ -89,6 +90,10 @@ class RootHandler(WebHandler):
     self.finish(t.generate(base_url=data['baseURL']))
 
   def web_index(self):
+    print('=== index ===')
+    print(self.request.arguments)
+    print(self.request.headers)
+    print('=============')
     # Render base template
     data = self.getSessionData()
 
