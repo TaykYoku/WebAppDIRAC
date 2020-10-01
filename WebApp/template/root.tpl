@@ -56,8 +56,32 @@
         };
       }
       
+      {% import json %}
+
       var GLOBAL = {};
       GLOBAL.APP = null;
+
+      // OIDC configure
+      Oidc.Log.logger = console;
+      GLOBAL.USERMANAGER = new Oidc.UserManager({{ json.dumps(auth_client_settings) }});
+      GLOBAL.USERMANAGER.events.addUserLoaded(function (loadedUser) { console.log(loadedUser); });
+      GLOBAL.USERMANAGER.events.addSilentRenewError(function (error) {
+        GLOBAL.APP.CF.log("error", "error while renewing the access token");
+      });
+      GLOBAL.USERMANAGER.events.addUserSignedOut(function () {
+        GLOBAL.APP.CF.alert('The user has signed out',"info");
+      });
+      GLOBAL.USERMANAGER.events.addUserLoaded(function(loadedUser) {
+        if (loadedUser && typeof loadedUser === 'string') {
+          loadedUser = JSON.parse(data);
+        }
+        if (loadedUser) {
+          loadedUser = JSON.stringify(loadedUser, null, 2);
+        }
+        var aJson = JSON.parse(loadedUser);
+        console.log(aJson);
+      });
+
       GLOBAL.BASE_URL = "{{base_url}}/";
       GLOBAL.ROOT_URL = "{{root_url}}/";
       GLOBAL.EXTJS_VERSION = "{{ext_version}}";
@@ -66,7 +90,6 @@
       GLOBAL.MOUSE_X = 0;
       GLOBAL.MOUSE_Y = 0;
       GLOBAL.IS_IE = false;
-      {% import json %}
       GLOBAL.USER_CREDENTIALS = {{ json.dumps( credentials ) }};
       GLOBAL.WEB_THEME = "{{theme}}";
       GLOBAL.STATE_MANAGEMENT_ENABLED = true;

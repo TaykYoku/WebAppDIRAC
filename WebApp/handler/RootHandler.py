@@ -128,7 +128,7 @@ class RootHandler(WebHandler):
     level = str(gLogger.getLevel()).lower()
     self.render("root.tpl", iconUrl=icon, base_url=data['baseURL'], _dev=Conf.devMode(),
                 ext_version=data['extVersion'], url_state=url_state,
-                extensions=data['extensions'],
+                extensions=data['extensions'], auth_client_settings=data['configuration']['AuthorizationClient'],
                 credentials=data['user'], title=Conf.getTitle(),
                 theme=theme_name, root_url=Conf.rootURL(), view=view_name,
                 open_app=open_app, debug_level=level, welcome=welcome,
