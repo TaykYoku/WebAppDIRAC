@@ -74,7 +74,7 @@ class RootHandler(WebHandler):
     t = template.Template('''<!DOCTYPE html>
       <html>
         <head>
-          <title>Authetication</title>
+          <title>Authentication</title>
           <meta charset="utf-8" />
         </head>
         <body>
