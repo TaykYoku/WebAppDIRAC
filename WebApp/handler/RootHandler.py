@@ -71,6 +71,7 @@ class RootHandler(WebHandler):
     print(self.request.arguments)
     print(self.request.headers)
     # print(self.request.hash)
+    
     data = self.getSessionData()
     t = template.Template('''<!DOCTYPE html>
       <html>
