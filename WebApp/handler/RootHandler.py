@@ -71,8 +71,17 @@ class RootHandler(WebHandler):
     print(self.request.arguments)
     print(self.request.headers)
     # print(self.request.hash)
-    
+    # fetch token with code
+    # store session:
+    # 
     data = self.getSessionData()
+    code = self.get_argument('code')
+    state = self.get_argument('state')
+    result = self.application.parseAuthResponse(self.request)
+    if not result['OK']:
+      raise WErr(503, result['Message'])
+    username, userProfile = result['Value']
+
     t = template.Template('''<!DOCTYPE html>
       <html>
         <head>
