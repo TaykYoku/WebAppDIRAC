@@ -1,6 +1,7 @@
 import re
 import os
 import urlparse
+from authlib.common.security import generate_token
 
 from tornado.escape import xhtml_escape
 from tornado import template
@@ -73,14 +74,21 @@ class RootHandler(WebHandler):
     # print(self.request.hash)
     # fetch token with code
     # store session:
-    # 
+
     data = self.getSessionData()
     code = self.get_argument('code')
     state = self.get_argument('state')
-    result = self.application.parseAuthResponse(self.request)
+    result = self.application.parseAuthResponse(self.request, state)
     if not result['OK']:
       raise WErr(503, result['Message'])
     username, userProfile = result['Value']
+
+    session = self.application.getSession(state)
+
+    sessionID = generate_token(30)
+    self.application.addSession(sessionID, **dict(session))
+    self.set_cookie('session_id', sessionID, httpsOnly=True)
+    # self.redirect(session.get('next', '/'))
 
     t = template.Template('''<!DOCTYPE html>
       <html>
@@ -90,14 +98,15 @@ class RootHandler(WebHandler):
         </head>
         <body>
           <script type="text/javascript" src="{{base_url}}/static/core/js/utils/oidc/oidc-client.min.js"></script>
-          <script> 
+          <script>
             new Oidc.UserManager({response_mode: "query"}).signinRedirectCallback().then(function () {
-              //window.location = "/";
+              window.location = {{next}};
             }).catch(function (e) { console.error(e); });
           </script>
         </body>
       </html>''')
-    self.finish(t.generate(base_url=data['baseURL']))
+    self.finish(t.generate(base_url=data['baseURL'], next=session.get('next', data['baseURL'])))
+    self.application.removeSession(session)
 
   def web_index(self):
     print('=== index ===')
