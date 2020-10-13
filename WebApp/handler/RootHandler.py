@@ -8,7 +8,7 @@ from tornado import template
 from DIRAC import rootPath, gLogger
 
 from DIRAC.Core.Web import Conf
-from DIRAC.Core.Web.WebHandler import WebHandler, WErr
+from DIRAC.Core.Web.WebHandler import WebHandler, WErr, asyncGen
 
 
 class RootHandler(WebHandler):
