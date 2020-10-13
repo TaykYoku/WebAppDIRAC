@@ -66,6 +66,7 @@ class RootHandler(WebHandler):
   def web_getConfigData(self):
     self.finish(self.getSessionData())
   
+  @asyncGen
   def web_loginComplete(self):
     print('------ web_loginComplete --------')
     # TODO: create here session "state" 
@@ -78,7 +79,7 @@ class RootHandler(WebHandler):
     data = self.getSessionData()
     code = self.get_argument('code')
     state = self.get_argument('state')
-    result = self.application._authClient.parseAuthResponse(self.request, state)
+    result = yield self.threadTask(self.application._authClient.parseAuthResponse, self.request, state)
     if not result['OK']:
       raise WErr(503, result['Message'])
     username, userProfile = result['Value']
