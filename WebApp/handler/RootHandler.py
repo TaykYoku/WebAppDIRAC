@@ -78,7 +78,7 @@ class RootHandler(WebHandler):
     data = self.getSessionData()
     code = self.get_argument('code')
     state = self.get_argument('state')
-    result = self.application.parseAuthResponse(self.request, state)
+    result = self.application._authClient.parseAuthResponse(self.request, state)
     if not result['OK']:
       raise WErr(503, result['Message'])
     username, userProfile = result['Value']
