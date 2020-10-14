@@ -2,6 +2,7 @@ import re
 import os
 import urlparse
 from authlib.common.security import generate_token
+from authlib.oauth2.rfc7636 import create_s256_code_challenge
 
 from tornado.escape import xhtml_escape
 from tornado import template
@@ -67,27 +68,46 @@ class RootHandler(WebHandler):
     self.finish(self.getSessionData())
   
   @asyncGen
+  def web_login(self, provider=None):
+    print('------ web_login --------')
+    code_verifier = generate_token(48)
+    code_challenge = create_s256_code_challenge(code_verifier)
+    url = self.application._authClient.metadata['authorization_url']
+    if provider:
+      url += '/%s' % provider
+    uri, state = self.application._authClient.create_authorization_url(url, code_challenge=code_challenge,
+                                                                       code_challenge_method='S256',
+                                                                       scope='changeGroup')
+    self.application.addSession(state, code_verifier=code_verifier)
+    self.redirect(uri)
+
+  @asyncGen
   def web_loginComplete(self):
     print('------ web_loginComplete --------')
-    # TODO: create here session "state" 
     print(self.request.arguments)
     print(self.request.headers)
-    # print(self.request.hash)
-    # fetch token with code
-    # store session:
 
     data = self.getSessionData()
     code = self.get_argument('code')
-    state = self.get_argument('state')
-    result = yield self.threadTask(self.application._authClient.parseAuthResponse, self.request, state)
+    # state = self.get_argument('state')
+    authSession = self.application.getSession(self.get_argument('state'))
+    
+    # Parse response
+    result = yield self.threadTask(self.idps.getIdProvider, providerName)
+    if result['OK']:
+      cli = result['Value']
+      setattr(cli, '_storeToken', lambda t, session: self.application.updateSession(session, **t))
+      result = yield self.threadTask(cli.parseAuthResponse, self.request, authSession)
+    authSession = self.application.getSession(authSession.id)
+    self.application.removeSession(authSession)
     if not result['OK']:
-      raise WErr(503, result['Message'])
+      self.finish(result['Message'])
+      return
+    # FINISHING with IdP auth result
     username, userProfile = result['Value']
 
-    session = self.application.getSession(state)
-
     sessionID = generate_token(30)
-    self.application.addSession(sessionID, **dict(session))
+    self.application.addSession(sessionID, **dict(authSession))
     self.set_cookie('session_id', sessionID, httpsOnly=True)
     # self.redirect(session.get('next', '/'))
 
@@ -106,8 +126,7 @@ class RootHandler(WebHandler):
           </script>
         </body>
       </html>''')
-    self.finish(t.generate(base_url=data['baseURL'], next=session.get('next', data['baseURL'])))
-    self.application.removeSession(session)
+    self.finish(t.generate(base_url=data['baseURL'], next=authSession.get('next', data['baseURL'])))
 
   def web_index(self):
     print('=== index ===')
