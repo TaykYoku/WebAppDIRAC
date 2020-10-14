@@ -93,7 +93,7 @@ class RootHandler(WebHandler):
     authSession = self.application.getSession(self.get_argument('state'))
     
     # Parse response
-    result = yield self.threadTask(self.idps.getIdProvider, providerName)
+    result = yield self.threadTask(self.application._idps.getIdProvider, providerName)
     if result['OK']:
       cli = result['Value']
       setattr(cli, '_storeToken', lambda t, session: self.application.updateSession(session, **t))
