@@ -67,6 +67,7 @@ class RootHandler(WebHandler):
   def web_getConfigData(self):
     self.finish(self.getSessionData())
   
+  path_authorization = ['([A-z0-9]*)']
   @asyncGen
   def web_login(self, provider=None):
     print('------ web_login --------')
@@ -78,7 +79,7 @@ class RootHandler(WebHandler):
     uri, state = self.application._authClient.create_authorization_url(url, code_challenge=code_challenge,
                                                                        code_challenge_method='S256',
                                                                        scope='changeGroup')
-    self.application.addSession(state, code_verifier=code_verifier)
+    self.application.addSession(state, code_verifier=code_verifier, provider=provider)
     self.redirect(uri)
 
   @asyncGen
@@ -93,7 +94,7 @@ class RootHandler(WebHandler):
     authSession = self.application.getSession(self.get_argument('state'))
     
     # Parse response
-    result = yield self.threadTask(self.application._idps.getIdProvider, providerName)
+    result = yield self.threadTask(self.application._idps.getIdProvider, authSession['provider'])
     if result['OK']:
       cli = result['Value']
       setattr(cli, '_storeToken', lambda t, session: self.application.updateSession(session, **t))
@@ -109,7 +110,7 @@ class RootHandler(WebHandler):
     sessionID = generate_token(30)
     self.application.addSession(sessionID, **dict(authSession))
     self.set_cookie('session_id', sessionID, httpsOnly=True)
-    # self.redirect(session.get('next', '/'))
+    # self.redirect(authSession.get('next', data['baseURL']))
 
     t = template.Template('''<!DOCTYPE html>
       <html>
@@ -120,13 +121,17 @@ class RootHandler(WebHandler):
         <body>
           <script type="text/javascript" src="{{base_url}}/static/core/js/utils/oidc/oidc-client.min.js"></script>
           <script>
-            new Oidc.UserManager({response_mode: "query"}).signinRedirectCallback().then(function () {
-              window.location = {{next}};
-            }).catch(function (e) { console.error(e); });
+            //new Oidc.UserManager({response_mode: "query"}).signinRedirectCallback().then(function () {
+            //  window.location = {{next}};
+            //}).catch(function (e) { console.error(e); });
+
+            localStorage.setItem("access_token", {{access_token}});
+            window.location = {{next}};
           </script>
         </body>
       </html>''')
-    self.finish(t.generate(base_url=data['baseURL'], next=authSession.get('next', data['baseURL'])))
+    self.finish(t.generate(base_url=data['baseURL'], next=authSession.get('next', data['baseURL']),
+                           access_token=authSession['access_token']))
 
   def web_index(self):
     print('=== index ===')

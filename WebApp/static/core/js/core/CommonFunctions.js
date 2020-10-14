@@ -34,10 +34,13 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
    * Helper function to submit authentication flow and read status of it
    */
   auth: function(authProvider, inthread) {
-    GLOBAL.USERMANAGER.signinRedirect().catch(function(error){
-      console.log(error);
-      console.log("error: " + error && error.message);
-    });
+
+    window.location = GLOBAL.BASE_URL + 'login?provider=' + authProvider
+    
+    // GLOBAL.USERMANAGER.signinRedirect().catch(function(error){
+    //   console.log(error);
+    //   console.log("error: " + error && error.message);
+    // });
     // // OIDC login method
     // // var oAuth2LogIn = function(settings,name) {
     // var settings = GLOBAL.APP.configData.configuration.AuthorizationClient;
