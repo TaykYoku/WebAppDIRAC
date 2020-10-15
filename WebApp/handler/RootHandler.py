@@ -6,7 +6,8 @@ from authlib.oauth2.rfc7636 import create_s256_code_challenge
 
 from tornado.escape import xhtml_escape
 from tornado import template
-from DIRAC import rootPath, gLogger
+
+from DIRAC import rootPath, gLogger, S_OK
 
 from DIRAC.Core.Web import Conf
 from DIRAC.Core.Web.WebHandler import WebHandler, WErr, asyncGen
@@ -95,7 +96,7 @@ class RootHandler(WebHandler):
     code = self.get_argument('code')
     authSession = self.application.getSession(self.get_argument('state'))
     
-    setattr(self.application._authClient, '_storeToken', lambda t, session: self.application.updateSession(session, **t))
+    setattr(self.application._authClient, '_storeToken', lambda t, session: S_OK(self.application.updateSession(session, **t)))
 
     print('session args: %s' % dict(authSession))
     result = yield self.threadTask(self.application._authClient.parseAuthResponse, self.request, authSession)
