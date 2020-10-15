@@ -97,7 +97,9 @@ class RootHandler(WebHandler):
     authSession = self.application.getSession(self.get_argument('state'))
     
     setattr(self.application._authClient, '_storeToken', lambda t, session: S_OK(self.application.updateSession(session, **t)))
-
+    if not authSession:
+      self.finish('not found %s' % self.get_argument('state'))
+      return
     print('session args: %s' % dict(authSession))
     result = yield self.threadTask(self.application._authClient.parseAuthResponse, self.request, authSession)
 
