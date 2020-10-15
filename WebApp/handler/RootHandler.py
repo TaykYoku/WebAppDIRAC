@@ -96,6 +96,9 @@ class RootHandler(WebHandler):
 
     data = self.getSessionData()
     code = self.get_argument('code')
+    from pprint import pprint
+    print('------>> self.application.getSession:')
+    pprint(self.application.getSessions)
     authSession = self.application.getSession(self.get_argument('state'))
     
     setattr(self.application._authClient, '_storeToken', lambda t, session: S_OK(self.application.updateSession(session, **t)))
