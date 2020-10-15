@@ -95,12 +95,16 @@ class RootHandler(WebHandler):
     code = self.get_argument('code')
     authSession = self.application.getSession(self.get_argument('state'))
     
-    # Parse response
-    result = yield self.threadTask(self.application._idps.getIdProvider, authSession['provider'])
-    if result['OK']:
-      cli = result['Value']
-      setattr(cli, '_storeToken', lambda t, session: self.application.updateSession(session, **t))
-      result = yield self.threadTask(cli.parseAuthResponse, self.request, authSession)
+    setattr(self.application._authClient, '_storeToken', lambda t, session: self.application.updateSession(session, **t))
+
+    result = yield self.threadTask(self.application._authClient.parseAuthResponse, self.request, authSession)
+
+    # # Parse response
+    # result = yield self.threadTask(self.application._idps.getIdProvider, authSession['provider'])
+    # if result['OK']:
+    #   cli = result['Value']
+    #   setattr(cli, '_storeToken', lambda t, session: self.application.updateSession(session, **t))
+    #   result = yield self.threadTask(cli.parseAuthResponse, self.request, authSession)
     authSession = self.application.getSession(authSession.id)
     self.application.removeSession(authSession)
     if not result['OK']:
