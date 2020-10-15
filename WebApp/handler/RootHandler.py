@@ -83,7 +83,9 @@ class RootHandler(WebHandler):
     uri, state = self.application._authClient.create_authorization_url(url, code_challenge=code_challenge,
                                                                        code_challenge_method='S256',
                                                                        scope='changeGroup')
+    print('==== CREATE Session: %s' % state)
     self.application.addSession(state, code_verifier=code_verifier, provider=provider)
+    print(self.application.getSession(state))
     self.redirect(uri)
 
   @asyncGen
