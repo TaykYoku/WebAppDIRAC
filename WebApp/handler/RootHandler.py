@@ -73,7 +73,7 @@ class RootHandler(WebHandler):
     print('------ web_login --------')
     code_verifier = generate_token(48)
     code_challenge = create_s256_code_challenge(code_verifier)
-    url = self.application._authClient.metadata['authorization_url']
+    url = self.application._authClient.metadata['authorization_endpoint']
     if provider:
       url += '/%s' % provider
     uri, state = self.application._authClient.create_authorization_url(url, code_challenge=code_challenge,
@@ -90,7 +90,6 @@ class RootHandler(WebHandler):
 
     data = self.getSessionData()
     code = self.get_argument('code')
-    # state = self.get_argument('state')
     authSession = self.application.getSession(self.get_argument('state'))
     
     # Parse response
