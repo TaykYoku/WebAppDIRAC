@@ -72,7 +72,8 @@ class RootHandler(WebHandler):
   def web_login(self, provider=None):
     print('------ web_login --------')
     print(provider)
-    print(self.request.get_argument('provider'))
+    print(self.get_argument('provider'))
+    provider = self.get_argument('provider')
     code_verifier = generate_token(48)
     code_challenge = create_s256_code_challenge(code_verifier)
     url = self.application._authClient.metadata['authorization_endpoint']
