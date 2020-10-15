@@ -67,13 +67,10 @@ class RootHandler(WebHandler):
 
   def web_getConfigData(self):
     self.finish(self.getSessionData())
-  
-  path_authorization = ['([A-z0-9]*)']
+
   @asyncGen
-  def web_login(self, provider=None):
+  def web_login(self):
     print('------ web_login --------')
-    print(provider)
-    print(self.get_argument('provider'))
     provider = self.get_argument('provider')
     code_verifier = generate_token(48)
     code_challenge = create_s256_code_challenge(code_verifier)
@@ -83,35 +80,20 @@ class RootHandler(WebHandler):
     uri, state = self.application._authClient.create_authorization_url(url, code_challenge=code_challenge,
                                                                        code_challenge_method='S256',
                                                                        scope='changeGroup')
-    print('==== CREATE Session: %s' % state)
     self.application.addSession(state, code_verifier=code_verifier, provider=provider)
-    print(self.application.getSession(state))
     self.redirect(uri)
 
   @asyncGen
   def web_loginComplete(self):
-    print('------ web_loginComplete --------')
-    print(self.request.arguments)
-    print(self.request.headers)
 
     data = self.getSessionData()
     code = self.get_argument('code')
-    from pprint import pprint
-    print('------>> self.application.getSession:')
-    pprint(self.application.getSessions())
     authSession = self.application.getSession(self.get_argument('state'))
-    pprint(self.get_argument('state'))
-    pprint(self.application.getSession(self.get_argument('state')))
+
+    # Parse response
     setattr(self.application._authClient, '_storeToken', lambda t, session: S_OK(self.application.updateSession(session, **t)))
-    print('session args: %s' % dict(authSession))
     result = yield self.threadTask(self.application._authClient.parseAuthResponse, self.request, authSession)
 
-    # # Parse response
-    # result = yield self.threadTask(self.application._idps.getIdProvider, authSession['provider'])
-    # if result['OK']:
-    #   cli = result['Value']
-    #   setattr(cli, '_storeToken', lambda t, session: self.application.updateSession(session, **t))
-    #   result = yield self.threadTask(cli.parseAuthResponse, self.request, authSession)
     authSession = self.application.getSession(authSession.id)
     self.application.removeSession(authSession)
     if not result['OK']:
@@ -122,13 +104,7 @@ class RootHandler(WebHandler):
 
     sessionID = generate_token(30)
     self.application.addSession(sessionID, **dict(authSession))
-    # self.set_cookie('session_id', sessionID, httpsOnly=True)
     self.set_secure_cookie('session_id', sessionID, secure=True, httponly=True)
-    # self.redirect(authSession.get('next', data['baseURL']))
-
-    # //new Oidc.UserManager({response_mode: "query"}).signinRedirectCallback().then(function () {
-    # //  window.location = {{next}};
-    # //}).catch(function (e) { console.error(e); });
 
     t = template.Template('''<!DOCTYPE html>
       <html>
@@ -138,7 +114,6 @@ class RootHandler(WebHandler):
         </head>
         <body>
           <script>
-            console.log("Authentication done )");
             localStorage.setItem("access_token", "{{access_token}}");
             window.location = "{{next}}";
           </script>
