@@ -103,9 +103,6 @@ class RootHandler(WebHandler):
     pprint(self.get_argument('state'))
     pprint(self.application.getSession(self.get_argument('state')))
     setattr(self.application._authClient, '_storeToken', lambda t, session: S_OK(self.application.updateSession(session, **t)))
-    if not authSession:
-      self.finish('not found %s' % self.get_argument('state'))
-      return
     print('session args: %s' % dict(authSession))
     result = yield self.threadTask(self.application._authClient.parseAuthResponse, self.request, authSession)
 
@@ -129,6 +126,10 @@ class RootHandler(WebHandler):
     self.set_secure_cookie('session_id', sessionID, secure=True, httponly=True)
     # self.redirect(authSession.get('next', data['baseURL']))
 
+    # //new Oidc.UserManager({response_mode: "query"}).signinRedirectCallback().then(function () {
+    # //  window.location = {{next}};
+    # //}).catch(function (e) { console.error(e); });
+
     t = template.Template('''<!DOCTYPE html>
       <html>
         <head>
@@ -136,18 +137,14 @@ class RootHandler(WebHandler):
           <meta charset="utf-8" />
         </head>
         <body>
-          <script type="text/javascript" src="{{base_url}}/static/core/js/utils/oidc/oidc-client.min.js"></script>
           <script>
-            //new Oidc.UserManager({response_mode: "query"}).signinRedirectCallback().then(function () {
-            //  window.location = {{next}};
-            //}).catch(function (e) { console.error(e); });
-
-            localStorage.setItem("access_token", {{access_token}});
-            window.location = {{next}};
+            console.log("Authentication done )");
+            localStorage.setItem("access_token", "{{access_token}}");
+            window.location = "{{next}}";
           </script>
         </body>
       </html>''')
-    self.finish(t.generate(base_url=data['baseURL'], next=authSession.get('next', data['baseURL']),
+    self.finish(t.generate(base_url=data['baseURL'], next=authSession.get('next', '/DIRAC'),
                            access_token=authSession['access_token']))
 
   def web_index(self):
