@@ -117,7 +117,8 @@ class RootHandler(WebHandler):
 
     sessionID = generate_token(30)
     self.application.addSession(sessionID, **dict(authSession))
-    self.set_cookie('session_id', sessionID, httpsOnly=True)
+    # self.set_cookie('session_id', sessionID, httpsOnly=True)
+    self.set_secure_cookie('session_id', sessionID, secure=True, httponly=True)
     # self.redirect(authSession.get('next', data['baseURL']))
 
     t = template.Template('''<!DOCTYPE html>
