@@ -97,6 +97,7 @@ class RootHandler(WebHandler):
     
     setattr(self.application._authClient, '_storeToken', lambda t, session: self.application.updateSession(session, **t))
 
+    print('session args: %s' % dict(authSession))
     result = yield self.threadTask(self.application._authClient.parseAuthResponse, self.request, authSession)
 
     # # Parse response
