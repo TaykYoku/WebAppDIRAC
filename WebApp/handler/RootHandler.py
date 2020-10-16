@@ -70,8 +70,12 @@ class RootHandler(WebHandler):
 
   @asyncGen
   def web_login(self):
+    """ Start authorization flow
+    """
     print('------ web_login --------')
     provider = self.get_argument('provider')
+
+    # Create PKCE things
     code_verifier = generate_token(48)
     code_challenge = create_s256_code_challenge(code_verifier)
     url = self.application._authClient.metadata['authorization_endpoint']
@@ -81,30 +85,34 @@ class RootHandler(WebHandler):
                                                                        code_challenge_method='S256',
                                                                        scope='changeGroup')
     self.application.addSession(state, code_verifier=code_verifier, provider=provider)
+    
+    # Redirect to authorization server
     self.redirect(uri)
 
   @asyncGen
   def web_loginComplete(self):
-
-    data = self.getSessionData()
+    """ Finishing authoriation flow
+    """
+    print('------ web_loginComplete --------')
     code = self.get_argument('code')
-    authSession = self.application.getSession(self.get_argument('state'))
+    state = self.get_argument('state')
 
     # Parse response
-    setattr(self.application._authClient, '_storeToken', lambda t, session: S_OK(self.application.updateSession(session, **t)))
-    result = yield self.threadTask(self.application._authClient.parseAuthResponse, self.request, authSession)
+    self.application._authClient.store_token = None
+    # setattr(self.application._authClient, 'store_token', lambda t, session: S_OK(self.application.updateSession(session, **t)))
+    result = yield self.threadTask(self.application._authClient.parseAuthResponse, self.request,
+                                   self.application.getSession(state))
 
-    authSession = self.application.getSession(authSession.id)
-    self.application.removeSession(authSession)
+    self.application.removeSession(state)
     if not result['OK']:
       self.finish(result['Message'])
       return
     # FINISHING with IdP auth result
-    username, userProfile = result['Value']
+    username, userProfile, session = result['Value']
 
-    sessionID = generate_token(30)
-    self.application.addSession(sessionID, **dict(authSession))
-    self.set_secure_cookie('session_id', sessionID, secure=True, httponly=True)
+    # Create session to work through portal
+    self.application.addSession(dict(session.update(id=generate_token(30))))
+    self.set_secure_cookie('session_id', session.id, secure=True, httponly=True)
 
     t = template.Template('''<!DOCTYPE html>
       <html>
@@ -113,14 +121,14 @@ class RootHandler(WebHandler):
           <meta charset="utf-8" />
         </head>
         <body>
+          Authorization is done.
           <script>
             localStorage.setItem("access_token", "{{access_token}}");
             window.location = "{{next}}";
           </script>
         </body>
       </html>''')
-    self.finish(t.generate(base_url=data['baseURL'], next=authSession.get('next', '/DIRAC'),
-                           access_token=authSession['access_token']))
+    self.finish(t.generate(next=session.get('next', '/DIRAC'), access_token=session['access_token']))
 
   def web_index(self):
     print('=== index ===')
