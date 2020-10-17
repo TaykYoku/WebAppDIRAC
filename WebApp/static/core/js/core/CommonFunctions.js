@@ -51,6 +51,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
   },
 
   fetchToken: function(access_token) {
+    var me = this;
     var meta = me.getAuthorizationServerMetadata();
     // var keys = KJUR.jws.JWS.readSafeJSONString(meta.jwks.toString());
     var key = KEYUTIL.getKey(meta.jwks["keys"][0]);
