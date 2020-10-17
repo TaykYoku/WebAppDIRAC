@@ -45,6 +45,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
             url: meta.jwks_url,
             success: function(response){
               meta.jwks = Ext.JSON.decode(response.responseText);
+              console.log('-- finish --')
               sessionStorage.setItem("AuthServerMetadata", meta);
             }
           });
