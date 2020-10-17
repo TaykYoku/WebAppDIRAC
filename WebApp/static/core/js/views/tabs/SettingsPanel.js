@@ -142,7 +142,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
           button_usrname.menu.push({
             text: oListAuth[i],
             handler: function() {
-              GLOBAL.APP.CF.auth(this.text);
+              window.location = GLOBAL.BASE_URL + 'login?provider=' + this.text;
             }
           });
         }

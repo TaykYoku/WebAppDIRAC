@@ -74,6 +74,10 @@ class RootHandler(WebHandler):
     """
     print('------ web_fetchToken --------')
     sessionID = self.getCurrentSession()
+    if self.application.getSession(sessionID)['access_token'] != self.get_argument('access_token'):
+      self.set_status(401)
+      self.finish('Unauthorize.')
+      return
 
     # Create PKCE things
     url = self.application._authClient.metadata['token_endpoint']
@@ -138,7 +142,7 @@ class RootHandler(WebHandler):
         <body>
           Authorization is done.
           <script>
-            localStorage.setItem("access_token", "{{access_token}}");
+            sessionStorage.setItem("access_token", "{{access_token}}");
             window.location = "{{next}}";
           </script>
         </body>

@@ -59,6 +59,7 @@
 
       var GLOBAL = {};
       GLOBAL.APP = null;
+      //GLOBAL.APP.AUTH = null;
 
       // jwt
       // check token

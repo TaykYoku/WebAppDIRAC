@@ -30,6 +30,67 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     return oList;
   },
 
+  getAuthorizationServerMetadata: function() {
+    var meta = sessionStorage.getItem("AuthServerMetadata");
+    if (meta == null) {
+      Ext.Ajax.request({
+        url: GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration',
+        success: function(response){
+          meta = Ext.JSON.decode(response.responseText);
+          Ext.Ajax.request({
+            url: meta.jwks_url,
+            success: function(response){
+              meta.jwks = Ext.JSON.decode(response.responseText);
+              sessionStorage.setItem("AuthServerMetadata", meta);
+            }
+          })
+        }
+      })
+    };
+    return meta
+  },
+
+  fetchToken: function(access_token) {
+    var meta = await getAuthorizationServerMetadata();
+    // var keys = KJUR.jws.JWS.readSafeJSONString(meta.jwks.toString());
+    var key = KEYUTIL.getKey(meta.jwks["keys"][0]);
+    if (key.verify(null, access_token) == true) {
+      return access_token
+    };
+    Ext.Ajax.request({
+      url: GLOBAL.BASE_URL + '/fetchToken',
+      params: {
+        access_token: access_token
+      },
+      success: function(response) {
+        sessionStorage.setItem("access_token", response.responseText);
+        return response.responseText;
+      }
+    })
+  },
+
+  rpcCall: function(url, method, args) {
+    // var meta = await getAuthorizationServerMetadata();
+    var access_token = sessionStorage.getItem("access_token");
+    if (access_token == null) {
+      GLOBAL.APP.CF.alert('RPC call inpossible without access token. You need authorize through IdP.', "info");
+      return
+    };
+    access_token = await fetchToken(access_token);
+    Ext.Ajax.request({
+      url: url,
+      method: 'POST',
+      params: {
+        method: method,
+        args: args
+      },
+      headers: {'Authorization': 'Bearer ' + access_token},
+      success: function(response) {
+        return Ext.JSON.decode(response.responseText);
+      }
+    });
+  },
+
   /**
    * Helper function to submit authentication flow and read status of it
    */
