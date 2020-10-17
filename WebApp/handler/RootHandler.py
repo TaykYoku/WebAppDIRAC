@@ -69,6 +69,21 @@ class RootHandler(WebHandler):
     self.finish(self.getSessionData())
 
   @asyncGen
+  def web_fetchToken(self):
+    """ Fetch access token
+    """
+    print('------ web_fetchToken --------')
+    sessionID = self.getCurrentSession()
+
+    # Create PKCE things
+    url = self.application._authClient.metadata['token_endpoint']
+    token = self.application._authClient.refresh_token(url, refresh_token=session['refresh_token'],
+                                                       scope='%s changeGroup' % self.getUserGroup())
+    self.application.updateSession(sessionID, **token)
+
+    self.finish(token['access_token'])
+
+  @asyncGen
   def web_login(self):
     """ Start authorization flow
     """
@@ -84,7 +99,8 @@ class RootHandler(WebHandler):
     uri, state = self.application._authClient.create_authorization_url(url, code_challenge=code_challenge,
                                                                        code_challenge_method='S256',
                                                                        scope='changeGroup')
-    self.application.addSession(state, code_verifier=code_verifier, provider=provider)
+    self.application.addSession(state, code_verifier=code_verifier, provider=provider,
+                                next=self.get_argument('next', None))
     
     # Redirect to authorization server
     self.redirect(uri)
@@ -99,7 +115,6 @@ class RootHandler(WebHandler):
 
     # Parse response
     self.application._authClient.store_token = None
-    # setattr(self.application._authClient, 'store_token', lambda t, session: S_OK(self.application.updateSession(session, **t)))
     result = yield self.threadTask(self.application._authClient.parseAuthResponse, self.request,
                                    self.application.getSession(state))
 
