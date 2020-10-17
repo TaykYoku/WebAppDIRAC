@@ -42,6 +42,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
           var meta = Ext.JSON.decode(response.responseText);
           // console.log(meta);
           console.log(Ext.JSON.decode(response.responseText).jwks_url);
+          console.log(Ext.JSON.decode(response.responseText));
           Ext.Ajax.request({
             url: meta.jwks_url,
             success: function(response){
