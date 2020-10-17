@@ -47,7 +47,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
         }
       });
     };
-    sessionStorage.setItem("AuthServerMetadata", Ext.JSON.stringify(meta));
+    sessionStorage.setItem("AuthServerMetadata", Ext.JSON.encode(meta));
     return meta
   },
 
