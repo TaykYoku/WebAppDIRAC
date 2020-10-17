@@ -34,7 +34,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     var meta = sessionStorage.getItem("AuthServerMetadata");
     if (meta == null) {
       console.log(GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration');
-      meta = await Ext.Ajax.request({
+      meta = Ext.Ajax.request({
         url: GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration',
         success: function(response) {
           console.log(response.responseText);
