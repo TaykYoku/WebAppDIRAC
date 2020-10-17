@@ -42,13 +42,15 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
             url: meta.jwks_uri,
             success: function(response){
               meta.jwks = Ext.JSON.decode(response.responseText);
+              sessionStorage.setItem("AuthServerMetadata", Ext.JSON.encode(meta));
+              return meta
             }
           });
         }
       });
+    } else {
+      return meta
     };
-    sessionStorage.setItem("AuthServerMetadata", Ext.JSON.encode(meta));
-    return meta
   },
 
   fetchToken: function(access_token) {
