@@ -142,6 +142,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
           button_usrname.menu.push({
             text: oListAuth[i],
             handler: function() {
+              console.log('Text: ' + this.text)
               window.location = GLOBAL.BASE_URL + 'login?provider=' + this.text;
             }
           });
