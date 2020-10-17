@@ -34,22 +34,31 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     var meta = sessionStorage.getItem("AuthServerMetadata");
     if (meta == null) {
       console.log(GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration');
-      meta = Ext.Ajax.request({
+      Ext.Ajax.request({
         url: GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration',
         success: function(response) {
           console.log(response.responseText);
-          return Ext.JSON.decode(response.responseText);
+          meta = Ext.JSON.decode(response.responseText);
+          console.log(meta);
+          Ext.Ajax.request({
+            url: meta.jwks_url,
+            success: function(response){
+              meta.jwks = Ext.JSON.decode(response.responseText);
+              sessionStorage.setItem("AuthServerMetadata", meta);
+            }
+          });
         }
       });
-      console.log(meta);
-      Ext.Ajax.request({
-        url: meta.jwks_url,
-        success: function(response){
-          meta.jwks = Ext.JSON.decode(response.responseText);
-          sessionStorage.setItem("AuthServerMetadata", meta);
-        }
-      });
+      //console.log(meta);
+      // Ext.Ajax.request({
+      //   url: meta.jwks_url,
+      //   success: function(response){
+      //     meta.jwks = Ext.JSON.decode(response.responseText);
+      //     sessionStorage.setItem("AuthServerMetadata", meta);
+      //   }
+      // });
     };
+    console.log('finish')
     return meta
   },
 
