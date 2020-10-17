@@ -31,7 +31,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
   },
 
   getAuthorizationServerMetadata: function() {
-    var meta = sessionStorage.getItem("AuthServerMetadata");
+    var meta = Ext.JSON.decode(sessionStorage.getItem("AuthServerMetadata"));
     if (meta == null) {
       console.log(GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration');
       Ext.Ajax.request({
@@ -57,7 +57,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     var me = this;
     var meta = me.getAuthorizationServerMetadata();
     // var keys = KJUR.jws.JWS.readSafeJSONString(meta.jwks.toString());
-    var key = KEYUTIL.getKey(meta.jwks["keys"][0]);
+    var key = KEYUTIL.getKey(meta.jwks.keys[0]);
     if (key.verify(null, access_token) == true) {
       return access_token
     };
