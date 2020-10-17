@@ -132,7 +132,7 @@ class RootHandler(WebHandler):
     # Create session to work through portal
     self.application.addSession(dict(session.update(id=generate_token(30))))
     self.set_secure_cookie('session_id', session.id, secure=True, httponly=True)
-
+    print('NEXT: %s' % session['next'])
     t = template.Template('''<!DOCTYPE html>
       <html>
         <head>
