@@ -35,34 +35,19 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     if (meta == null) {
       console.log(GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration');
       Ext.Ajax.request({
-        async: false,
         url: GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration',
         success: function(response) {
-          console.log(response);
-          var meta = Ext.JSON.decode(response.responseText);
-          // console.log(meta);
-          console.log(Ext.JSON.decode(response.responseText).jwks_url);
-          console.log(Ext.JSON.decode(response.responseText));
+          meta = Ext.JSON.decode(response.responseText);
           Ext.Ajax.request({
-            url: meta.jwks_url,
+            url: meta.jwks_uri,
             success: function(response){
               meta.jwks = Ext.JSON.decode(response.responseText);
-              console.log('-- finish --')
               sessionStorage.setItem("AuthServerMetadata", meta);
             }
           });
         }
       });
-      //console.log(meta);
-      // Ext.Ajax.request({
-      //   url: meta.jwks_url,
-      //   success: function(response){
-      //     meta.jwks = Ext.JSON.decode(response.responseText);
-      //     sessionStorage.setItem("AuthServerMetadata", meta);
-      //   }
-      // });
     };
-    console.log('finish')
     return meta
   },
 
