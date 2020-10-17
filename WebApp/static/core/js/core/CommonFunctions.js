@@ -38,10 +38,10 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
         async: false,
         url: GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration',
         success: function(response) {
-          console.log(response.responseText);
-          GLOBAL.APP.meta = Ext.JSON.decode(response.responseText);
-          console.log(meta);
-          console.log(meta["jwks_url"]);
+          console.log(response);
+          var meta = Ext.JSON.decode(response.responseText);
+          // console.log(meta);
+          console.log(meta.jwks_url);
           Ext.Ajax.request({
             url: meta.jwks_url,
             success: function(response){
