@@ -39,7 +39,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
         url: GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration',
         success: function(response) {
           console.log(response.responseText);
-          meta = Ext.JSON.decode(response.responseText);
+          GLOBAL.APP.meta = Ext.JSON.decode(response.responseText);
           console.log(meta);
           console.log(meta["jwks_url"]);
           Ext.Ajax.request({
