@@ -34,11 +34,11 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     var meta = sessionStorage.getItem("AuthServerMetadata");
     if (meta == null) {
       console.log(GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration');
-      Ext.Ajax.request({
+      meta = await Ext.Ajax.request({
         url: GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration',
         success: function(response) {
           console.log(response.responseText);
-          meta = Ext.JSON.decode(response.responseText);
+          return Ext.JSON.decode(response.responseText);
         }
       });
       console.log(meta);
