@@ -104,7 +104,7 @@ class RootHandler(WebHandler):
                                                                        code_challenge_method='S256',
                                                                        scope='changeGroup')
     self.application.addSession(state, code_verifier=code_verifier, provider=provider,
-                                next=self.get_argument('next', None))
+                                next=self.get_argument('next', '/DIRAC'))
     
     # Redirect to authorization server
     self.redirect(uri)
@@ -147,7 +147,7 @@ class RootHandler(WebHandler):
           </script>
         </body>
       </html>''')
-    self.finish(t.generate(next=session.get('next', '/DIRAC'), access_token=session['access_token']))
+    self.finish(t.generate(next=session['next'], access_token=session['access_token']))
 
   def web_index(self):
     print('=== index ===')
