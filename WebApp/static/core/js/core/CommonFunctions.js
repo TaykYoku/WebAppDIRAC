@@ -51,7 +51,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
   },
 
   fetchToken: function(access_token) {
-    var meta = getAuthorizationServerMetadata();
+    var meta = me.getAuthorizationServerMetadata();
     // var keys = KJUR.jws.JWS.readSafeJSONString(meta.jwks.toString());
     var key = KEYUTIL.getKey(meta.jwks["keys"][0]);
     if (key.verify(null, access_token) == true) {
@@ -70,13 +70,14 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
   },
 
   rpcCall: function(url, method, args) {
+    var me = this;
     // var meta = await getAuthorizationServerMetadata();
     var access_token = sessionStorage.getItem("access_token");
     if (access_token == null) {
       GLOBAL.APP.CF.alert('RPC call inpossible without access token. You need authorize through IdP.', "info");
       return
     };
-    access_token = fetchToken(access_token);
+    access_token = me.fetchToken(access_token);
     Ext.Ajax.request({
       url: url,
       method: 'POST',
