@@ -62,7 +62,8 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
       return access_token
     };
     Ext.Ajax.request({
-      url: GLOBAL.BASE_URL + '/fetchToken',
+      method: 'GET',
+      url: GLOBAL.BASE_URL + 'fetchToken',
       params: {
         access_token: access_token
       },
