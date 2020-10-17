@@ -35,6 +35,7 @@ Ext.define("Ext.dirac.core.CommonFunctions", {
     if (meta == null) {
       console.log(GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration');
       Ext.Ajax.request({
+        async: false,
         url: GLOBAL.APP.configData.configuration.AuthorizationClient.issuer + '/.well-known/openid-configuration',
         success: function(response) {
           console.log(response.responseText);
