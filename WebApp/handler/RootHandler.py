@@ -88,6 +88,14 @@ class RootHandler(WebHandler):
     self.finish(token['access_token'])
 
   @asyncGen
+  def web_logout(self):
+    """ Start authorization flow
+    """
+    print('------ web_logout --------')
+    self.application.removeSession(self.getCurrentSession())
+    self.redirect('/DIRAC')
+
+  @asyncGen
   def web_login(self):
     """ Start authorization flow
     """

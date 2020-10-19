@@ -119,6 +119,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     // Generate list of login buttons
     var oListAuth = me.getListAuth();
     var currentAuth = Ext.util.Cookies.get("TypeAuth");
+    var sessionID = Ext.util.Cookies.get("session_id");
 
     var button_usrname = {
       text: "Visitor",
@@ -135,41 +136,43 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       });
       // HTTPS
       // Log in section
-    } else {
+    } else if (sessionID == null)  {
       // List of IdPs
       for (var i = 0; i < oListAuth.length; i++) {
-        if (oListAuth[i] != currentAuth) {
+        // if (oListAuth[i] != currentAuth) {
           button_usrname.menu.push({
             text: oListAuth[i],
             handler: function() {
-              console.log('Text: ' + this.text)
-              window.location = GLOBAL.BASE_URL + 'login?provider=' + this.text;
+              window.location = GLOBAL.BASE_URL + 'login?provider=' + this.text + '&next=' + window.location.href;
             }
           });
-        }
+        // }
       }
-      // Default authentication method
-      if (currentAuth != "Certificate") {
-        button_usrname.menu.push({
-          text: "Certificate",
-          handler: function() {
-            GLOBAL.APP.CF.auth("Certificate");
-          }
-        });
-      }
+      // // Default authentication method
+      // if (currentAuth != "Certificate") {
+      //   button_usrname.menu.push({
+      //     text: "Certificate",
+      //     handler: function() {
+      //       GLOBAL.APP.CF.auth("Certificate");
+      //     }
+      //   });
+      // }
+    } else {
       // Log out section
-      if (currentAuth != "Visitor") {
-        if (Array.isArray(oListAuth)) {
-          button_usrname.menu.push({ xtype: "menuseparator" });
-        }
+      // if (currentAuth != "Visitor") {
+        // if (Array.isArray(oListAuth)) {
+        //   button_usrname.menu.push({ xtype: "menuseparator" });
+        // }
         button_usrname.menu.push({
           text: "Log out",
           handler: function() {
-            GLOBAL.APP.CF.auth("Log out");
+            // GLOBAL.APP.CF.auth("Log out");
+            sessionStorage.removeItem("access_token");
+            window.location = GLOBAL.BASE_URL + 'logout';
           }
         });
         button_usrname.menu.push();
-      }
+      // }
     }
 
     if (GLOBAL.APP.configData.user.username) {
