@@ -140,9 +140,6 @@ class RootHandler(WebHandler):
 
     # Create session to work through portal
     sessionID = generate_token(30)
-    print('session finish')
-    from pprint import pprint
-    pprint(session)
     self.application.addSession(dict(session.update(id=sessionID)))
     self.set_secure_cookie('session_id', sessionID, secure=True, httponly=True)
 
