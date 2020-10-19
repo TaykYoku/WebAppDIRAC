@@ -180,15 +180,15 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
           }
         });
         button_usrname.menu.push();
-      // }
-    }
+      }
+    };
 
     if (GLOBAL.APP.configData.user.username) {
       /**
        * If the user is registered
        */
       button_usrname.text = GLOBAL.APP.configData["user"]["username"];
-    }
+    };
     return new Ext.button.Button(button_usrname);
   },
 
