@@ -139,8 +139,9 @@ class RootHandler(WebHandler):
     username, userProfile, session = result['Value']
 
     # Create session to work through portal
-    self.application.addSession(dict(session.update(id=generate_token(30))))
-    self.set_secure_cookie('session_id', session.id, secure=True, httponly=True)
+    sessionID = generate_token(30)
+    self.application.addSession(dict(session.update(id=sessionID)))
+    self.set_secure_cookie('session_id', sessionID, secure=True, httponly=True)
 
     t = template.Template('''<!DOCTYPE html>
       <html>
