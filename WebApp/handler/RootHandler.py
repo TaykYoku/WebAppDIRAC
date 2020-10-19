@@ -155,7 +155,7 @@ class RootHandler(WebHandler):
           </script>
         </body>
       </html>''')
-    self.finish(t.generate(next=session['next'], access_token=session['access_token']))
+    self.finish(t.generate(next=session['next'], access_token=session.token.access_token))
 
   def web_index(self):
     print('=== index ===')
