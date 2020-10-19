@@ -19,6 +19,7 @@ class UPHandler(WebHandler):
   __tc = ThreadConfig()
 
   def prepare(self):
+    super(UPHandler, self).prepare()
     if not self.isRegisteredUser():
       raise WErr(401, "Not a registered user")
     self.set_header("Pragma", "no-cache")
