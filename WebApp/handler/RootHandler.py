@@ -93,6 +93,7 @@ class RootHandler(WebHandler):
     """
     print('------ web_logout --------')
     self.application.removeSession(self.getCurrentSession())
+    self.set_cookie('authGrant', 'Visitor')
     self.redirect('/DIRAC')
 
   @asyncGen
@@ -113,7 +114,7 @@ class RootHandler(WebHandler):
                                                                        scope='changeGroup')
     self.application.addSession(state, code_verifier=code_verifier, provider=provider,
                                 next=self.get_argument('next', '/DIRAC'))
-    
+    self.set_cookie('authGrant', 'Session')
     # Redirect to authorization server
     self.redirect(uri)
 
@@ -140,10 +141,7 @@ class RootHandler(WebHandler):
     # Create session to work through portal
     self.application.addSession(dict(session.update(id=generate_token(30))))
     self.set_secure_cookie('session_id', session.id, secure=True, httponly=True)
-    print('NEXT: %s' % session['next'])
-    print('SESSION:')
-    from pprint import pprint
-    pprint(session)
+
     t = template.Template('''<!DOCTYPE html>
       <html>
         <head>
