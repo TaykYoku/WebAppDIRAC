@@ -7,7 +7,7 @@ from authlib.oauth2.rfc7636 import create_s256_code_challenge
 from tornado.escape import xhtml_escape
 from tornado import template
 
-from DIRAC import rootPath, gLogger, S_OK
+from DIRAC import rootPath, gLogger, S_OK, gConfig
 
 from DIRAC.Core.Web import Conf
 from DIRAC.Core.Web.WebHandler import WebHandler, WErr, asyncGen
