@@ -18,6 +18,30 @@ class RootHandler(WebHandler):
   AUTH_PROPS = "all"
   LOCATION = "/"
 
+  @classmethod
+  def initializeHandler(cls, serviceInfo):
+    """
+      This may be overwritten when you write a DIRAC service handler
+      And it must be a class method. This method is called only one time,
+      at the first request
+
+      :param dict ServiceInfoDict: infos about services, it contains
+                                    'serviceName', 'serviceSectionPath',
+                                    'csPaths' and 'URL'
+    """
+    # Add WebClient
+    result = gConfig.getOptionsDictRecursively("/WebApp/AuthorizationClient")
+    if not result['OK']:
+      raise Exception("Can't load web portal settings.")
+    config = result['Value']
+    result = gConfig.getOptionsDictRecursively('/Systems/Framework/Production/Services/AuthManager/AuthorizationServer')
+    if not result['OK']:
+      raise Exception("Can't load authorization server settings.")
+    serverMetadata = result['Value']
+    config.update(serverMetadata)
+    config = dict((k, v.replace(', ', ',').split(',') if ',' in v else v) for k, v in config.items())
+    cls._authClient = OAuth2IdProvider(**config)
+
   def web_upload(self):
 
     if 'filename' not in self.request.arguments:
@@ -80,8 +104,8 @@ class RootHandler(WebHandler):
       return
 
     # Create PKCE things
-    url = self.application._authClient.metadata['token_endpoint']
-    token = self.application._authClient.refresh_token(url, refresh_token=session['refresh_token'],
+    url = self._authClient.metadata['token_endpoint']
+    token = self._authClient.refresh_token(url, refresh_token=session['refresh_token'],
                                                        scope='%s changeGroup' % self.getUserGroup())
     self.application.updateSession(sessionID, **token)
 
@@ -106,10 +130,10 @@ class RootHandler(WebHandler):
     # Create PKCE things
     code_verifier = generate_token(48)
     code_challenge = create_s256_code_challenge(code_verifier)
-    url = self.application._authClient.metadata['authorization_endpoint']
+    url = self._authClient.metadata['authorization_endpoint']
     if provider:
       url += '/%s' % provider
-    uri, state = self.application._authClient.create_authorization_url(url, code_challenge=code_challenge,
+    uri, state = self._authClient.create_authorization_url(url, code_challenge=code_challenge,
                                                                        code_challenge_method='S256',
                                                                        scope='changeGroup')
     self.application.addSession(state, code_verifier=code_verifier, provider=provider,
@@ -127,8 +151,8 @@ class RootHandler(WebHandler):
     state = self.get_argument('state')
 
     # Parse response
-    self.application._authClient.store_token = None
-    result = yield self.threadTask(self.application._authClient.parseAuthResponse, self.request,
+    self._authClient.store_token = None
+    result = yield self.threadTask(self._authClient.parseAuthResponse, self.request,
                                    self.application.getSession(state))
 
     self.application.removeSession(state)
