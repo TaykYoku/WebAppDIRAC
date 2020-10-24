@@ -7,7 +7,7 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities import Time, List
 from DIRAC.ConfigurationSystem.private.Modificator import Modificator
 
-from DIRAC.Core.Web.WebHandler import WebSocketHandler, WErr, asyncGen
+from DIRAC.Core.Tornado.Web.WebHandler import WebSocketHandler, WErr, asyncGen
 
 
 class ConfigurationManagerHandler(WebSocketHandler):

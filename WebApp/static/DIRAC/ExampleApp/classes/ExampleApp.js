@@ -9,7 +9,7 @@
  *    - We implemented the ExampleAppHandler.py
  *
  *    ExampleHandler.py:
- *    from DIRAC.Core.Web.WebHandler import WebHandler, WErr, WOK, asyncGen
+ *    from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, WErr, WOK, asyncGen
  *     from DIRAC import gConfig, S_OK, S_ERROR, gLogger
  *     from DIRAC.Core.Utilities import Time
  *     import json

@@ -4,7 +4,7 @@ from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
 from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
 from DIRAC.WorkloadManagementSystem.Client.JobMonitoringClient import JobMonitoringClient
-from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, asyncGen
 
 
 class PilotSummaryHandler(WebHandler):

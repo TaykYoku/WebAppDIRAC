@@ -6,7 +6,7 @@ from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getVOForGroup
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
-from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, asyncGen
 
 
 class JobLaunchpadHandler(WebHandler):

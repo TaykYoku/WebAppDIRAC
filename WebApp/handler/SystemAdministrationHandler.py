@@ -13,7 +13,7 @@ from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdminis
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
 
-from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen, WErr
+from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, asyncGen, WErr
 
 
 class SystemAdministrationHandler(WebHandler):

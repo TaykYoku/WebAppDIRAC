@@ -11,7 +11,7 @@ from DIRAC.Core.Utilities import Time, List, DictCache
 from DIRAC.Core.Utilities.Plotting.FileCoding import extractRequestFromFileId, codeRequestInFileId
 from DIRAC.MonitoringSystem.Client.MonitoringClient import MonitoringClient
 
-from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, asyncGen
 
 
 class MonitoringHandler(WebHandler):

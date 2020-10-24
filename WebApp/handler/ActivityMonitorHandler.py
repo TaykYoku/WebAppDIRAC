@@ -7,7 +7,7 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities import Time, DEncode
 
-from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, asyncGen
 
 
 class ActivityMonitorHandler(WebHandler):

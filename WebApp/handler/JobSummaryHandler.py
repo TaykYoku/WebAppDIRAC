@@ -4,7 +4,7 @@ from time import time
 from DIRAC import gLogger, gConfig
 from DIRAC.WorkloadManagementSystem.Client.WMSAdministratorClient import WMSAdministratorClient
 
-from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, asyncGen
 
 
 class JobSummaryHandler(WebHandler):

@@ -8,7 +8,7 @@ from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 
 from DIRAC.Core.Web import Conf
-from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, asyncGen
 
 from DIRAC.FrameworkSystem.Client.AuthManagerClient import gSessionManager
 

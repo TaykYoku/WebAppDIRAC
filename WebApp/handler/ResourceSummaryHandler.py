@@ -6,7 +6,7 @@ from DIRAC.Core.Utilities import Time
 from DIRAC.ResourceStatusSystem.Client.PublisherClient import PublisherClient
 from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import RSSMachine
 
-from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, asyncGen
 
 
 class ResourceSummaryHandler(WebHandler):

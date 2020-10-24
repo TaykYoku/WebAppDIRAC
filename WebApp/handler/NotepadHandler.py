@@ -1,5 +1,5 @@
 
-from DIRAC.Core.Web.WebHandler import WebHandler
+from DIRAC.Core.Tornado.Web.WebHandler import WebHandler
 
 class NotepadHandler(WebHandler):
 

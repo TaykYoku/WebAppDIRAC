@@ -7,7 +7,7 @@ from DIRAC import gConfig, gLogger
 from DIRAC.Core.Utilities import Time
 from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
-from DIRAC.Core.Web.WebHandler import WebHandler, WErr, asyncGen
+from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, WErr, asyncGen
 
 
 class TransformationMonitorHandler(WebHandler):

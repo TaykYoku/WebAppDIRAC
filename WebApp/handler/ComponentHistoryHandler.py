@@ -3,7 +3,7 @@ import datetime
 
 from DIRAC.Core.Utilities import Time
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
-from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen, WErr
+from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, asyncGen, WErr
 
 
 class ComponentHistoryHandler(WebHandler):

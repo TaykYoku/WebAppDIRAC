@@ -10,7 +10,7 @@ from tornado import template
 from DIRAC import rootPath, gLogger, S_OK, gConfig
 
 from DIRAC.Core.Web import Conf
-from DIRAC.Core.Web.WebHandler import WebHandler, WErr, asyncGen
+from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, WErr, asyncGen
 from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
 
 

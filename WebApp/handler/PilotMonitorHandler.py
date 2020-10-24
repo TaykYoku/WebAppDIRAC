@@ -5,7 +5,7 @@ from DIRAC.Core.Utilities import Time
 from DIRAC.Core.Utilities.Graphs.Palette import Palette
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForDN
 from DIRAC.WorkloadManagementSystem.Client.PilotManagerClient import PilotManagerClient
-from DIRAC.Core.Web.WebHandler import WebHandler, asyncGen
+from DIRAC.Core.Tornado.Web.WebHandler import WebHandler, asyncGen
 
 
 class PilotMonitorHandler(WebHandler):
