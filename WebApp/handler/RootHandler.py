@@ -48,7 +48,6 @@ class RootHandler(WebHandler):
   def web_getConfigData(self):
     self.finish(self.getSessionData())
 
-  @asyncGen
   def web_fetchToken(self):
     """ Fetch access token
     """
@@ -67,7 +66,6 @@ class RootHandler(WebHandler):
 
     self.finish(token['access_token'])
 
-  @asyncGen
   def web_logout(self):
     """ Start authorization flow
     """
@@ -76,7 +74,6 @@ class RootHandler(WebHandler):
     self.set_cookie('authGrant', 'Visitor')
     self.redirect('/DIRAC')
 
-  @asyncGen
   def web_login(self):
     """ Start authorization flow
     """
@@ -98,7 +95,6 @@ class RootHandler(WebHandler):
     # Redirect to authorization server
     self.redirect(uri)
 
-  @asyncGen
   def web_loginComplete(self):
     """ Finishing authoriation flow
     """
