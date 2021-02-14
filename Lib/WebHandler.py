@@ -1,32 +1,48 @@
+""" Main module
+"""
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+__RCSID__ = "$Id$"
+
 import ssl
 import json
 import requests
 import functools
 import traceback
-import tornado.web
-import tornado.gen
-import tornado.ioloop
-import tornado.websocket
-import tornado.stack_context
 
 from concurrent.futures import ThreadPoolExecutor
 
-from DIRAC import gLogger
+from authlib.jose import jwt
+from authlib.common.security import generate_token
+
+import tornado.web
+import tornado.websocket
+from tornado import gen
+from tornado.web import HTTPError
+from tornado.ioloop import IOLoop
+
+from DIRAC import gLogger, gConfig, S_OK, S_ERROR
+
 from DIRAC.Core.Security import Properties
-from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
-from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
+from DIRAC.Core.Utilities.JEncode import encode
+from DIRAC.Core.Tornado.Web import Conf
+from DIRAC.Core.Tornado.Web.SessionData import SessionData
+from DIRAC.Core.Tornado.Server.TornadoREST import TornadoREST
+from DIRAC.Core.Tornado.Server.BaseRequestHandler import BaseRequestHandler
+from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import ResourceProtector
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername
 
-from WebAppDIRAC.Lib import Conf
-from WebAppDIRAC.Lib.SessionData import SessionData
 
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
+sLog = gLogger.getSubLogger(__name__)
 
 
-class WErr(tornado.web.HTTPError):
+class WErr(HTTPError):
 
   def __init__(self, code, msg="", **kwargs):
     super(WErr, self).__init__(code, str(msg) or None)
@@ -59,22 +75,20 @@ def asyncWithCallback(method):
 
 
 def asyncGen(method):
-  return tornado.gen.coroutine(method)
+  return gen.coroutine(method)
 
 
-class WebHandler(tornado.web.RequestHandler):
-
+class WebHandler(BaseRequestHandler):
   __disetConfig = ThreadConfig()
-  __log = False
 
-  # Auth requirements
-  AUTH_PROPS = None
   # Location of the handler in the URL
   LOCATION = ""
   # URL Schema with holders to generate handler urls
   URLSCHEMA = ""
   # RE to extract group and setup
   PATH_RE = None
+  # Prefix of methods names
+  METHOD_PREFIX = "web_"
 
   def threadTask(self, method, *args, **kwargs):
     def threadJob(*targs, **tkwargs):
@@ -83,149 +97,196 @@ class WebHandler(tornado.web.RequestHandler):
       self.__disetConfig.reset()
       self.__disetConfig.load(disetConf)
       return method(*args, **tkwargs)
+
     targs = (args, self.__disetDump)
-    return tornado.ioloop.IOLoop.current().run_in_executor(gThreadPool, functools.partial(threadJob, *targs, **kwargs))
+    return IOLoop.current().run_in_executor(gThreadPool, functools.partial(threadJob, *targs, **kwargs))
 
   def __disetBlockDecor(self, func):
     def wrapper(*args, **kwargs):
       raise RuntimeError("All DISET calls must be made from inside a Threaded Task!")
-
     return wrapper
 
-  def __init__(self, *args, **kwargs):
-    """ Initialize the handler
+  @classmethod
+  def _getServiceName(cls, request):
+    """ Search service name in request
+
+        :param object request: tornado Request
+
+        :return: str
     """
-    super(WebHandler, self).__init__(*args, **kwargs)
-    if not WebHandler.__log:
-      WebHandler.__log = gLogger.getSubLogger(self.__class__.__name__)
-    # Fill credentials
-    self.__credDict = {}
-    self.__setup = Conf.setup()
-    self.__processCredentials()
-    # Setup diset
+    match = cls.PATH_RE.match(request.path)
+    groups = match.groups()
+    route = groups[2]
+    return route if route[-1] == "/" else route[:route.rfind("/")]
+  
+  @classmethod
+  def _getServiceAuthSection(cls, serviceName):
+    """ Search service auth section. Developers MUST
+        implement it in subclass.
+
+        :param str serviceName: service name
+
+        :return: str
+    """
+    return Conf.getAuthSectionForHandler(serviceName)
+
+  def _getMethodName(self):
+    """ Parse method name.
+
+        :return: str
+    """
+    match = self.PATH_RE.match(self.request.path)
+    groups = match.groups()
+    route = groups[2]
+    return "index" if route[-1] == "/" else route[route.rfind("/") + 1:]
+
+  def prepare(self):
+    """
+      Prepare the request. It reads certificates and check authorizations.
+      We make the assumption that there is always going to be a ``method`` argument
+      regardless of the HTTP method used
+
+    """
+    self.__session = None
+    self.__parseURI()
     self.__disetConfig.reset()
     self.__disetConfig.setDecorator(self.__disetBlockDecor)
     self.__disetDump = self.__disetConfig.dump()
+
+    super(WebHandler, self).prepare()
+
+    # TODO:
+    # if self.credDict.get('DN') and self.isTrustedHost(self.credDict['DN']):
+    #   self.log.info("Request is coming from Trusted host")
+    #   authorized = True
+
+    if self.getDN():
+      self.__disetConfig.setDN(self.getDN())
+    if self.getID():
+      self.__disetConfig.setID(self.getID())
+    # pylint: disable=no-value-for-parameter
+    if self.getUserGroup():  # pylint: disable=no-value-for-parameter
+      self.__disetConfig.setGroup(self.getUserGroup())  # pylint: disable=no-value-for-parameter
+    self.__disetConfig.setSetup(self.__setup)
+    self.__disetDump = self.__disetConfig.dump()
+    
+    self.__sessionData = SessionData(self.credDict, self.__setup)
+    self.__forceRefreshCS()
+
+  def __parseURI(self):
     match = self.PATH_RE.match(self.request.path)
-    self._pathResult = self.__checkPath(*match.groups())
-    self.__sessionData = SessionData(self.__credDict, self.__setup)
+    groups = match.groups()
+    self.__setup = groups[0] or Conf.setup()
+    self.__group = groups[1]
+    self.__route = groups[2]
+    self.__args = groups[3:]
 
-  def __processCredentials(self):
-    """ Extract the user credentials based on the certificate or what comes from the balancer
+  def __forceRefreshCS(self):
+    """ Force refresh configuration from master configuration server
     """
-    # Unsecure protocol only for visitors
-    if self.request.protocol != "https":
-      return
+    if self.request.headers.get('X-RefreshConfiguration') == 'True':
+      self.log.debug('Initialize force refresh..')
+      if not AuthManager('').authQuery("", dict(self.credDict), "CSAdministrator"):
+        raise WErr(401, 'Cannot initialize force refresh, request not authenticated')
+      result = gConfig.forceRefresh()
+      if not result['OK']:
+        raise WErr(501, result['Message'])
 
-    # OIDC auth method
-    def oAuth2():
-      if self.get_secure_cookie("AccessToken"):
-        access_token = self.get_secure_cookie("AccessToken")
-        url = Conf.getCSValue("TypeAuths/%s/authority" % typeAuth) + '/userinfo'
-        heads = {'Authorization': 'Bearer ' + access_token, 'Content-Type': 'application/json'}
-        if 'error' in requests.get(url, headers=heads, verify=False).json():
-          self.log.error('OIDC request error: %s' % requests.get(url, headers=heads, verify=False).json()['error'])
-          return
-        ID = requests.get(url, headers=heads, verify=False).json()['sub']
-        result = getUsernameForID(ID)
-        if result['OK']:
-          self.__credDict['username'] = result['Value']
-        result = getDNForUsername(self.__credDict['username'])
-        if result['OK']:
-          self.__credDict['validDN'] = True
-          self.__credDict['DN'] = result['Value'][0]
-        return
-
-    # Type of Auth
-    if not self.get_secure_cookie("TypeAuth"):
-      self.set_secure_cookie("TypeAuth", 'Certificate')
-    typeAuth = self.get_secure_cookie("TypeAuth")
-    self.log.info("Type authentication: %s" % str(typeAuth))
-    if typeAuth == "Visitor":
-      return
-    retVal = Conf.getCSSections("TypeAuths")
-    if retVal['OK']:
-      if typeAuth in retVal.get("Value"):
-        method = Conf.getCSValue("TypeAuths/%s/method" % typeAuth, 'default')
-        if method == "oAuth2":
-          oAuth2()
-
-    # NGINX
-    if Conf.balancer() == "nginx":
-      headers = self.request.headers
-      if headers['X-Scheme'] == "https" and headers['X-Ssl_client_verify'] == 'SUCCESS':
-        DN = headers['X-Ssl_client_s_dn']
-        if not DN.startswith('/'):
-          items = DN.split(',')
-          items.reverse()
-          DN = '/' + '/'.join(items)
-        self.__credDict['DN'] = DN
-        self.__credDict['issuer'] = headers['X-Ssl_client_i_dn']
-        result = Registry.getUsernameForDN(DN)
-        if not result['OK']:
-          self.__credDict['validDN'] = False
-        else:
-          self.__credDict['validDN'] = True
-          self.__credDict['username'] = result['Value']
-      return
-
-    # TORNADO
-    derCert = self.request.get_ssl_certificate(binary_form=True)
-    if not derCert:
-      return
-    pemCert = ssl.DER_cert_to_PEM_cert(derCert)
-    chain = X509Chain()
-    chain.loadChainFromString(pemCert)
-    result = chain.getCredentials()
-    if not result['OK']:
-      self.log.error("Could not get client credentials %s" % result['Message'])
-      return
-    self.__credDict = result['Value']
-    # Hack. Data coming from OSSL directly and DISET difer in DN/subject
-    try:
-      self.__credDict['DN'] = self.__credDict['subject']
-    except KeyError:
-      pass
-
-  def _request_summary(self):
+  def _gatherPeerCredentials(self):
     """
-    Return a string returning the summary of the request
+      Load client certchain in DIRAC and extract informations.
+
+      The dictionary returned is designed to work with the AuthManager,
+      already written for DISET and re-used for HTTPS.
+
+      :returns: a dict containing the return of :py:meth:`DIRAC.Core.Security.X509Chain.X509Chain.getCredentials`
+                (not a DIRAC structure !)
     """
-    summ = super(WebHandler, self)._request_summary()
-    cl = []
-    if self.__credDict.get('validDN', False):
-      cl.append(self.__credDict['username'])
-      if self.__credDict.get('validGroup', False):
-        cl.append("@%s" % self.__credDict['group'])
-      cl.append(" (%s)" % self.__credDict['DN'])
-    summ = "%s %s" % (summ, "".join(cl))
-    return summ
+    credDict = {}
+
+    # Authorization type
+    self.__authGrant = self.get_cookie('authGrant', 'Certificate')
+
+    if self.request.protocol == "https" and self.__authGrant.lower() != 'visitor':
+      if self.__authGrant == 'Session':
+        # read session
+        credDict = self.__readSession(self.get_secure_cookie('session_id'))
+
+      else:
+        # Read token and certificate
+        credDict = super(WebHandler, self)._gatherPeerCredentials()
+      
+      # Add a group if it present in the request path
+      # if self.__group:
+      credDict['validGroup'] = False
+      credDict['group'] = self.__group
+
+    return credDict
+
+  # def _request_summary(self):
+  #   """ Return a string returning the summary of the request
+
+  #       :return: str
+  #   """
+  #   summ = super(WebHandler, self)._request_summary()
+  #   cl = []
+  #   if self.credDict.get('validDN', False):
+  #     cl.append(self.credDict['username'])
+  #     if self.credDict.get('validGroup', False):
+  #       cl.append("@%s" % self.credDict['group'])
+  #     cl.append(" (%s)" % self.credDict['DN'])
+  #   summ = "%s %s" % (summ, "".join(cl))
+  #   return summ
+
+  def __readSession(self, sessionID):
+    """ Fill credentionals from session
+
+        :param str sessionID: session id
+
+        :return: dict
+    """
+    if not sessionID:
+      return {}
+    
+    session = self.application.getSession(sessionID)
+    if not session or not session.token:
+      self.clear_cookie('session_id')
+      raise Exception('%s session expired.' % sessionID)
+
+    if self.request.headers.get("Authorization"):
+      token = ResourceProtector().acquire_token(self.request, 'changeGroup')
+
+      # Is session active?
+      if session.token.access_token != token.access_token:
+        raise Exception('%s session invalid, token is not match.' % sessionID)
+    token = ResourceProtector().validator(session.token.refresh_token, 'changeGroup', None, 'OR')
+
+    # Update session expired time
+    self.application.updateSession(session)
+    return {'ID': token.sub, 'issuer': token.issuer, 'group': self.__group, 'validGroup': False}
+  
+  def _readToken(self, scope=None):
+    """ Fill credentionals from session
+
+        :param str scope: scope
+
+        :return: dict
+    """
+    return super(WebHandler, self)._readToken(self.__group and ('g:%s' % self.__group))
 
   @property
   def log(self):
-    return self.__log
+    return sLog
 
   @classmethod
   def getLog(cls):
     return cls.__log
 
-  def getUserDN(self):
-    return self.__credDict.get('DN', '')
-
-  def getUserName(self):
-    return self.__credDict.get('username', '')
-
-  def getUserGroup(self):
-    return self.__credDict.get('group', '')
+  def getCurrentSession(self):
+    return self.__session
 
   def getUserSetup(self):
     return self.__setup
-
-  def getProperties(self):
-    return self.__credDict.get('properties', [])
-
-  def isRegisteredUser(self):
-    return self.__credDict.get('validDN', "") and self.__credDict.get('validGroup', "")
 
   def getSessionData(self):
     return self.__sessionData.getData()
@@ -234,8 +295,11 @@ class WebHandler(tornado.web.RequestHandler):
     return Conf.getAppSettings(app or self.__class__.__name__.replace('Handler', '')).get('Value') or {}
 
   def actionURL(self, action=""):
-    """
-    Given an action name for the handler, return the URL
+    """ Given an action name for the handler, return the URL
+
+        :param str action: action
+
+        :return: str
     """
     if action == "index":
       action = ""
@@ -251,102 +315,28 @@ class WebHandler(tornado.web.RequestHandler):
     ats = dict(action=action, group=group, setup=setup, location=location)
     return self.URLSCHEMA % ats
 
-  def __auth(self, handlerRoute, group, method):
-    """ Authenticate request
+  # def isTrustedHost(self, dn):
+  #   """ Check if the request coming from a TrustedHost
 
-        :param str handlerRoute: the name of the handler
-        :param str group: DIRAC group
-        :param str method: the name of the method
+  #       :param str dn: certificate DN
 
-        :return: bool
-    """
-    userDN = self.getUserDN()
-    if group:
-      self.__credDict['group'] = group
-    else:
-      if userDN:
-        result = Registry.findDefaultGroupForDN(userDN)
-        if result['OK']:
-          self.__credDict['group'] = result['Value']
-    self.__credDict['validGroup'] = False
+  #       :return: bool if the host is Trusrted it return true otherwise false
+  #   """
+  #   retVal = Registry.getHostnameForDN(dn)
+  #   if retVal['OK']:
+  #     hostname = retVal['Value']
+  #     if Properties.TRUSTED_HOST in Registry.getPropertiesForHost(hostname, []):
+  #       return True
+  #   return False
 
-    if not isinstance(self.AUTH_PROPS, (list, tuple)):
-      self.AUTH_PROPS = [p.strip() for p in self.AUTH_PROPS.split(",") if p.strip()]
-
-    auth = AuthManager(Conf.getAuthSectionForHandler(handlerRoute))
-    ok = auth.authQuery(method, self.__credDict, self.AUTH_PROPS)
-    if ok:
-      if userDN:
-        self.__credDict['validGroup'] = True
-        self.log.info("AUTH OK: %s by %s@%s (%s)" %
-                      (handlerRoute, self.__credDict['username'], self.__credDict['group'], userDN))
-      else:
-        self.__credDict['validDN'] = False
-        self.log.info("AUTH OK: %s by visitor" % (handlerRoute))
-    elif self.isTrustedHost(self.__credDict.get('DN', '')):
-      self.log.info("Request is coming from Trusted host")
-      return True
-    else:
-      self.log.info("AUTH KO: %s by %s@%s" % (handlerRoute, userDN, group))
-    return ok
-
-  def isTrustedHost(self, dn):
-    """ Check if the request coming from a TrustedHost
-        :param str dn: certificate DN
-
-        :return: bool if the host is Trusrted it return true otherwise false
-    """
-    retVal = Registry.getHostnameForDN(dn)
-    if retVal['OK']:
-      hostname = retVal['Value']
-      if Properties.TRUSTED_HOST in Registry.getPropertiesForHost(hostname, []):
-        return True
-    return False
-
-  def __checkPath(self, setup, group, route):
-    """ Check the request, auth, credentials and DISET config
-
-        :param str setup: setup name
-        :param str group: group name
-        :param str route: route
-
-        :return: WOK()/WErr()
-    """
-    if route[-1] == "/":
-      methodName = "index"
-      handlerRoute = route
-    else:
-      iP = route.rfind("/")
-      methodName = route[iP + 1:]
-      handlerRoute = route[:iP]
-    if setup:
-      self.__setup = setup
-    if not self.__auth(handlerRoute, group, methodName):
-      return WErr(401, "Unauthorized. %s" % methodName)
-
-    DN = self.getUserDN()
-    if DN:
-      self.__disetConfig.setDN(DN)
-
-    if self.getUserGroup():
-      self.__disetConfig.setGroup(self.getUserGroup())
-    self.__disetConfig.setSetup(setup)
-    self.__disetDump = self.__disetConfig.dump()
-
-    return WOK(methodName)
-
-  def get(self, setup, group, route):
-    if not self._pathResult.ok:
-      raise self._pathResult
-    methodName = "web_%s" % self._pathResult.data
-    try:
-      mObj = getattr(self, methodName)
-    except AttributeError as e:
-      self.log.fatal("This should not happen!! %s" % e)
-      raise tornado.web.HTTPError(404)
-    return mObj()
+  def get(self, setup, group, route, *pathArgs):
+    method = self._getMethod()
+    return method(*pathArgs)
 
   def post(self, *args, **kwargs):
+    return self.get(*args, **kwargs)
+
+  def delete(self, *args, **kwargs):
     return self.get(*args, **kwargs)
 
   def write_error(self, status_code, **kwargs):
@@ -367,6 +357,11 @@ class WebHandler(tornado.web.RequestHandler):
           data = json.dumps(data)
     self.set_header('Content-Type', cType)
     self.finish(data)
+
+  def finishJEncode(self, o):
+    """ Encode data before finish
+    """
+    self.finish(encode(o))
 
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
