@@ -10,7 +10,7 @@ from tornado import template
 from DIRAC import rootPath, gLogger, S_OK, gConfig
 
 from WebAppDIRAC.Lib import Conf
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr
+from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
 from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
 
 
@@ -43,6 +43,7 @@ class RootHandler(WebHandler):
     config = dict((k, v.replace(', ', ',').split(',') if ',' in v else v) for k, v in config.items())
     cls._authClient = OAuth2IdProvider(**config)
 
+  @asyncGen
   def web_changeGroup(self):
     try:
       to = self.request.arguments['to'][-1]
@@ -50,6 +51,7 @@ class RootHandler(WebHandler):
       raise WErr(400, "Missing 'to' argument")
     self.__change(group=to)
 
+  @asyncGen
   def web_changeSetup(self):
     try:
       to = self.request.arguments['to'][-1]
@@ -69,9 +71,11 @@ class RootHandler(WebHandler):
     url = [Conf.rootURL().strip("/"), "s:%s" % setup, "g:%s" % group]
     self.redirect("/%s%s" % ("/".join(url), qs))
 
+  @asyncGen
   def web_getConfigData(self):
     self.finish(self.getSessionData())
 
+  @asyncGen
   def web_fetchToken(self):
     """ Fetch access token
     """
@@ -90,6 +94,7 @@ class RootHandler(WebHandler):
 
     self.finish(token['access_token'])
 
+  @asyncGen
   def web_logout(self):
     """ Start authorization flow
     """
@@ -98,6 +103,7 @@ class RootHandler(WebHandler):
     self.set_cookie('authGrant', 'Visitor')
     self.redirect('/DIRAC')
 
+  @asyncGen
   def web_login(self):
     """ Start authorization flow
     """
@@ -119,6 +125,7 @@ class RootHandler(WebHandler):
     # Redirect to authorization server
     self.redirect(uri)
 
+  @asyncGen
   def web_loginComplete(self):
     """ Finishing authoriation flow
     """
@@ -159,6 +166,7 @@ class RootHandler(WebHandler):
       </html>''')
     self.finish(t.generate(next=session['next'], access_token=session.token.access_token))
 
+  @asyncGen
   def web_index(self):
     # Render base template
     data = self.getSessionData()
