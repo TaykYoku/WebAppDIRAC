@@ -24,17 +24,17 @@ from tornado.web import HTTPError
 from tornado.ioloop import IOLoop
 
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
-
 from DIRAC.Core.Security import Properties
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.Utilities.JEncode import encode
-from DIRAC.Core.Tornado.Web import Conf
-from DIRAC.Core.Tornado.Web.SessionData import SessionData
 from DIRAC.Core.Tornado.Server.TornadoREST import TornadoREST
 from DIRAC.Core.Tornado.Server.BaseRequestHandler import BaseRequestHandler
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import ResourceProtector
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername
+
+from WebAppDIRAC.Lib import Conf
+from WebAppDIRAC.Lib.SessionData import SessionData
 
 
 global gThreadPool
@@ -78,9 +78,12 @@ def asyncGen(method):
   return gen.coroutine(method)
 
 
-class WebHandler(BaseRequestHandler):
+#class WebHandler(BaseRequestHandler):
+class WebHandler(TornadoREST):
   __disetConfig = ThreadConfig()
 
+  # Auth requirements
+  AUTH_PROPS = None
   # Location of the handler in the URL
   LOCATION = ""
   # URL Schema with holders to generate handler urls
@@ -217,9 +220,9 @@ class WebHandler(BaseRequestHandler):
         credDict = super(WebHandler, self)._gatherPeerCredentials()
       
       # Add a group if it present in the request path
-      # if self.__group:
-      credDict['validGroup'] = False
-      credDict['group'] = self.__group
+      if self.__group:
+        credDict['validGroup'] = False
+        credDict['group'] = self.__group
 
     return credDict
 

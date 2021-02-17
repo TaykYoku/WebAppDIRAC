@@ -1,8 +1,12 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import os
 import uuid
 import tempfile
 import tornado.process
+
 from DIRAC import gConfig
 from DIRAC.Core.Security import Locations, X509Chain, X509CRL
 from DIRAC.Core.Utilities.Decorators import deprecated
