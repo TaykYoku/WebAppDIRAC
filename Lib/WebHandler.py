@@ -249,11 +249,13 @@ class WebHandler(TornadoREST):
         :return: dict
     """
     if not sessionID:
+      self.clear_cookie('authGrant')
       return {}
     
     session = self.application.getSession(sessionID)
     if not session or not session.token:
       self.clear_cookie('session_id')
+      self.clear_cookie('authGrant')
       raise Exception('%s session expired.' % sessionID)
 
     if self.request.headers.get("Authorization"):
