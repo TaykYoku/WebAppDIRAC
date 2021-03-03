@@ -1,18 +1,12 @@
-[v4r0p38]
+[v4r2-pre3]
 
-NEW: (#473) use listStatesForWeb endpoint to make the Public State Manager faster
-
-[v4r0p37]
-
-FIX: (#453) use setSrc to replaceImage
-
-[v4r0p36]
-
-NEW: (#449) Add columns to SiteSummary overview tables.
-
-[v4r0p35]
-
-FIX: (#444) fix SiteSummary plots and setter
+FIX: (#436) delete the missing key from the ComponentMonitoring response
+CHANGE: (#424) don't read web.cfg, use WebApp section in driac.cfg instead
+CHANGE: (#423) remove upload method from the RootHandler
+NEW: (#422) add new Selection Fields and Group By clauses for Activity Monitoring in the Accounting
+NEW: (#412) add getProperties helper method to the WebHandler
+FIX: (#412) fix bugs, change refreshStore to setStore in the js part of code, use getUserName, etc.. instead getSessionData
+FIX: (#406) add diraccfg to the requirements, minor fixes
 
 [v4r0p33]
 
