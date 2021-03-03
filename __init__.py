@@ -14,7 +14,11 @@ import os
 majorVersion = 4
 minorVersion = 2
 patchLevel = 0
+<<<<<<< HEAD
 preVersion = 1
+=======
+preVersion = 5
+>>>>>>> 2f932d2 (v4r2-pre5 notes and tags)
 
 version = "v%sr%s" % (majorVersion, minorVersion)
 buildVersion = "v%dr%d" % (majorVersion, minorVersion)
