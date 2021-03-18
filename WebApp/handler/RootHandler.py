@@ -80,7 +80,6 @@ class RootHandler(WebHandler):
   def web_fetchToken(self):
     """ Fetch access token
     """
-    print('------ web_fetchToken --------')
     sessionID = self.getCurrentSession()
     if self.application.getSession(sessionID)['access_token'] != self.get_argument('access_token'):
       self.set_status(401)
@@ -99,7 +98,6 @@ class RootHandler(WebHandler):
   def web_logout(self):
     """ Start authorization flow
     """
-    print('------ web_logout --------')
     self.application.removeSession(self.getCurrentSession())
     self.set_cookie('authGrant', 'Visitor')
     self.redirect('/DIRAC')
@@ -108,7 +106,6 @@ class RootHandler(WebHandler):
   def web_login(self):
     """ Start authorization flow
     """
-    print('------ web_login --------')
     provider = self.get_argument('provider')
 
     # Create PKCE things
@@ -131,7 +128,6 @@ class RootHandler(WebHandler):
   def web_loginComplete(self):
     """ Finishing authoriation flow
     """
-    print('------ web_loginComplete --------')
     code = self.get_argument('code')
     state = self.get_argument('state')
 
