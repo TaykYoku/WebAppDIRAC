@@ -19,7 +19,7 @@ from DIRAC import S_OK, S_ERROR, rootPath, gLogger
 from DIRAC.Core.Utilities.ObjectLoader import ObjectLoader
 from DIRAC.Core.Utilities.DIRACSingleton import DIRACSingleton
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
-## from DIRAC.FrameworkSystem.private.authorization import AuthServer
+# from DIRAC.FrameworkSystem.private.authorization import AuthServer
 
 import WebAppDIRAC
 
@@ -189,6 +189,6 @@ class HandlerMgr(object):
 
   def isAuthServer(self):
     return self.__isAuthServer
-  
+
   def isPortal(self):
     return self.__isPortal

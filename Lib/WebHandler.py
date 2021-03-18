@@ -78,7 +78,7 @@ def asyncGen(method):
   return gen.coroutine(method)
 
 
-#class WebHandler(BaseRequestHandler):
+# class WebHandler(BaseRequestHandler):
 class WebHandler(TornadoREST):
   __disetConfig = ThreadConfig()
 
@@ -121,7 +121,7 @@ class WebHandler(TornadoREST):
     groups = match.groups()
     route = groups[2]
     return route if route[-1] == "/" else route[:route.rfind("/")]
-  
+
   @classmethod
   def _getServiceAuthSection(cls, serviceName):
     """ Search service auth section. Developers MUST
@@ -172,7 +172,7 @@ class WebHandler(TornadoREST):
       self.__disetConfig.setGroup(self.getUserGroup())  # pylint: disable=no-value-for-parameter
     self.__disetConfig.setSetup(self.__setup)
     self.__disetDump = self.__disetConfig.dump()
-    
+
     self.__sessionData = SessionData(self.credDict, self.__setup)
     self.__forceRefreshCS()
 
@@ -218,7 +218,7 @@ class WebHandler(TornadoREST):
       else:
         # Read token and certificate
         credDict = super(WebHandler, self)._gatherPeerCredentials()
-      
+
       # Add a group if it present in the request path
       if self.__group:
         credDict['validGroup'] = False
@@ -251,7 +251,7 @@ class WebHandler(TornadoREST):
     if not sessionID:
       self.clear_cookie('authGrant')
       return {}
-    
+
     session = self.application.getSession(sessionID)
     if not session or not session.token:
       self.clear_cookie('session_id')
@@ -270,7 +270,7 @@ class WebHandler(TornadoREST):
     # Update session expired time
     self.application.updateSession(session)
     return {'ID': token.sub, 'issuer': token.issuer, 'group': self.__group, 'validGroup': False}
-  
+
   def _readToken(self, scope=None):
     """ Fill credentionals from session
 
