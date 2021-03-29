@@ -16,6 +16,7 @@ from tornado.ioloop import IOLoop
 
 from DIRAC import gLogger
 from DIRAC.Core.Security import Properties
+from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
@@ -72,7 +73,6 @@ def defaultEncoder(data):
 
 class WebHandler(tornado.web.RequestHandler):
 
-# class WebHandler(BaseRequestHandler):
 class WebHandler(TornadoREST):
   __disetConfig = ThreadConfig()
 
