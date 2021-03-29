@@ -7,7 +7,6 @@ __RCSID__ = "$Id$"
 import os
 
 from DIRAC import gConfig, gLogger
-# from DIRAC.Core.Tornado.Web import Conf
 from DIRAC.Core.Utilities import List, ThreadSafe
 from DIRAC.Core.Utilities.DictCache import DictCache
 from DIRAC.Core.DISET.AuthManager import AuthManager
@@ -95,8 +94,8 @@ class SessionData(object):
     optionsList = result['Value']
     for opName in optionsList:
       opVal = gConfig.getValue("%s/%s" % (fullName, opName))
-      if opVal.find("link|") == 0:
-        schema.append(("link", opName, opVal[5:]))
+      if opVal.startswith("link|"):
+        schema.append(("link", opName, str(opVal)[5:]))
         continue
       if self.__isGroupAuthApp(opVal):
         schema.append(("app", opName, opVal))

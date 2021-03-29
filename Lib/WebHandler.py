@@ -25,10 +25,10 @@ from tornado.ioloop import IOLoop
 
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.Security import Properties
+from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.Utilities.JEncode import encode
 from DIRAC.Core.Tornado.Server.TornadoREST import TornadoREST
-from DIRAC.Core.Tornado.Server.BaseRequestHandler import BaseRequestHandler
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import ResourceProtector
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername
@@ -78,7 +78,6 @@ def asyncGen(method):
   return gen.coroutine(method)
 
 
-# class WebHandler(BaseRequestHandler):
 class WebHandler(TornadoREST):
   __disetConfig = ThreadConfig()
 
