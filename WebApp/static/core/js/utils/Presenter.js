@@ -384,11 +384,16 @@ Ext.define("Ext.dirac.utils.Presenter", {
     var me = this;
     return me.lastClickedImage;
   },
-  replaceImage: function(oldImage, newImage) {
+  // When you apply new input data for example, need to update image
+  replaceImage: function(image, src, plotParams) {
     var me = this;
-    var img = me.getComponent(oldImage.id);
-    img.plotParams = newImage["params"];
-    img.setSrc(newImage["src"]);
+    if (typeof src === 'object') {
+      plotParams = src.params;
+      src = src.src;
+    }
+    var img = me.getImage(image.id);
+    plotParams && (img.plotParams = plotParams);
+    src != img.src ? img.setSrc(src) : img.updateSrc(src);
   },
   setColumnWidth: function(column) {
     var me = this;
@@ -445,9 +450,8 @@ Ext.define("Ext.dirac.utils.Presenter", {
           params: value.plotParams,
           success: function(responseImg) {
             responseImg = Ext.JSON.decode(responseImg.responseText);
-
             if (responseImg["success"]) {
-              value.setSrc(GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + "/getPlotImg?file=" + responseImg["data"]);
+              me.replaceImage(value, GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + "/getPlotImg?file=" + responseImg["data"]);
             }
           },
           failure: function(response, opt) {
@@ -466,6 +470,7 @@ Ext.define("Ext.dirac.utils.Presenter", {
 
         me.items.each(function(value, index) {
           value.setLoading("Refreshing image...");
+
           Ext.Ajax.request({
             url: GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + "/generatePlot",
             timeout: me.timeout,
@@ -473,7 +478,7 @@ Ext.define("Ext.dirac.utils.Presenter", {
             success: function(responseImg) {
               responseImg = Ext.JSON.decode(responseImg.responseText);
               if (responseImg["success"]) {
-                value.setSrc(GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + "/getPlotImg?file=" + responseImg["data"]);
+                me.replaceImage(value, GLOBAL.BASE_URL + me.scope.handlers[value.reportType] + "/getPlotImg?file=" + responseImg["data"]);
               }
             },
             failure: function(response, opt) {
