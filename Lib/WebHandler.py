@@ -78,7 +78,7 @@ def asyncGen(method):
   return gen.coroutine(method)
 
 
-class WebHandler(TornadoREST):
+class _WebHandler(TornadoREST):
   __disetConfig = ThreadConfig()
 
   # Auth requirements
@@ -141,6 +141,13 @@ class WebHandler(TornadoREST):
     groups = match.groups()
     route = groups[2]
     return "index" if route[-1] == "/" else route[route.rfind("/") + 1:]
+  
+  def _getMethodArgs(self, args):
+    """ Decode args.
+
+        :return: list
+    """
+    return args[3:]
 
   def prepare(self):
     """
@@ -156,11 +163,6 @@ class WebHandler(TornadoREST):
     self.__disetDump = self.__disetConfig.dump()
 
     super(WebHandler, self).prepare()
-
-    # TODO:
-    # if self.credDict.get('DN') and self.isTrustedHost(self.credDict['DN']):
-    #   self.log.info("Request is coming from Trusted host")
-    #   authorized = True
 
     if self.getDN():
       self.__disetConfig.setDN(self.getDN())
@@ -204,49 +206,23 @@ class WebHandler(TornadoREST):
       :returns: a dict containing the return of :py:meth:`DIRAC.Core.Security.X509Chain.X509Chain.getCredentials`
                 (not a DIRAC structure !)
     """
-    credDict = {}
-
     # Authorization type
-    self.__authGrant = self.get_cookie('authGrant', 'Certificate')
+    self.__authGrant = 'visitor' if self.request.protocol != "https" else self.get_cookie('authGrant', 'SSL')
+    credDict = super(WebHandler, self)._gatherPeerCredentials(grant=self.__authGrant)
 
-    if self.request.protocol == "https" and self.__authGrant.lower() != 'visitor':
-      if self.__authGrant == 'Session':
-        # read session
-        credDict = self.__readSession(self.get_secure_cookie('session_id'))
-
-      else:
-        # Read token and certificate
-        credDict = super(WebHandler, self)._gatherPeerCredentials()
-
-      # Add a group if it present in the request path
-      if self.__group:
-        credDict['validGroup'] = False
-        credDict['group'] = self.__group
+    # Add a group if it present in the request path
+    if credDict and self.__group:
+      credDict['validGroup'] = False
+      credDict['group'] = self.__group
 
     return credDict
 
-  # def _request_summary(self):
-  #   """ Return a string returning the summary of the request
-
-  #       :return: str
-  #   """
-  #   summ = super(WebHandler, self)._request_summary()
-  #   cl = []
-  #   if self.credDict.get('validDN', False):
-  #     cl.append(self.credDict['username'])
-  #     if self.credDict.get('validGroup', False):
-  #       cl.append("@%s" % self.credDict['group'])
-  #     cl.append(" (%s)" % self.credDict['DN'])
-  #   summ = "%s %s" % (summ, "".join(cl))
-  #   return summ
-
-  def __readSession(self, sessionID):
+  def _authzSESSION(self):
     """ Fill credentionals from session
-
-        :param str sessionID: session id
 
         :return: dict
     """
+    sessionID = self.get_secure_cookie('session_id')
     if not sessionID:
       self.clear_cookie('authGrant')
       return {}
@@ -260,27 +236,19 @@ class WebHandler(TornadoREST):
       raise Exception('%s session expired.' % sessionID)
 
     if self.request.headers.get("Authorization"):
-      token = ResourceProtector().acquire_token(self.request, 'changeGroup')
+      token = ResourceProtector().acquire_token(self.request)  # , 'changeGroup')
 
       # Is session active?
       if session.token.access_token != token.access_token:
         raise Exception('%s session invalid, token is not match.' % sessionID)
 
-    token = ResourceProtector().validator(session.token.refresh_token, 'changeGroup', None, 'OR')
+    token = ResourceProtector().validator(session.token.refresh_token, None, #'changeGroup',
+                                          None, 'OR')
 
     # Update session expired time
     self.application.updateSession(session)
     self.__session = session
     return {'ID': token.sub, 'issuer': token.issuer, 'group': self.__group, 'validGroup': False}
-
-  def _readToken(self, scope=None):
-    """ Fill credentionals from session
-
-        :param str scope: scope
-
-        :return: dict
-    """
-    return super(WebHandler, self)._readToken(self.__group and ('g:%s' % self.__group))
 
   @property
   def log(self):
@@ -301,51 +269,6 @@ class WebHandler(TornadoREST):
 
   def getAppSettings(self, app=None):
     return Conf.getAppSettings(app or self.__class__.__name__.replace('Handler', '')).get('Value') or {}
-
-  def actionURL(self, action=""):
-    """ Given an action name for the handler, return the URL
-
-        :param str action: action
-
-        :return: str
-    """
-    if action == "index":
-      action = ""
-    group = self.getUserGroup()
-    if group:
-      group = "/g:%s" % group
-    setup = self.getUserSetup()
-    if setup:
-      setup = "/s:%s" % setup
-    location = self.LOCATION
-    if location:
-      location = "/%s" % location
-    ats = dict(action=action, group=group, setup=setup, location=location)
-    return self.URLSCHEMA % ats
-
-  # def isTrustedHost(self, dn):
-  #   """ Check if the request coming from a TrustedHost
-
-  #       :param str dn: certificate DN
-
-  #       :return: bool if the host is Trusrted it return true otherwise false
-  #   """
-  #   retVal = Registry.getHostnameForDN(dn)
-  #   if retVal['OK']:
-  #     hostname = retVal['Value']
-  #     if Properties.TRUSTED_HOST in Registry.getPropertiesForHost(hostname, []):
-  #       return True
-  #   return False
-
-  def get(self, setup, group, route, *pathArgs):
-    method = self._getMethod()
-    return method(*pathArgs)
-
-  def post(self, *args, **kwargs):
-    return self.get(*args, **kwargs)
-
-  def delete(self, *args, **kwargs):
-    return self.get(*args, **kwargs)
 
   def write_error(self, status_code, **kwargs):
     self.set_status(status_code)
@@ -370,6 +293,18 @@ class WebHandler(TornadoREST):
     """ Encode data before finish
     """
     self.finish(encode(o))
+
+
+class WebHandler(_WebHandler):
+  def get(self, setup, group, route, *pathArgs):
+    method = self._getMethod()
+    return method(*pathArgs)
+
+  def post(self, *args, **kwargs):
+    return self.get(*args, **kwargs)
+
+  def delete(self, *args, **kwargs):
+    return self.get(*args, **kwargs)
 
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler, WebHandler):
