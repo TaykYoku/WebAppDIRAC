@@ -10,11 +10,11 @@ from DIRAC.Core.Utilities import DEncode
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.FrameworkSystem.Client.UserProfileClient import UserProfileClient
 
-from WebAppDIRAC.Lib.WebHandler import WebHandler, WErr, asyncGen
+from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, asyncGen
 
 
 class UPHandler(WebHandler):
-
+  RAISE_DIRAC_ERROR = True
   AUTH_PROPS = "authenticated"
   __tc = ThreadConfig()
 
@@ -36,7 +36,6 @@ class UPHandler(WebHandler):
       raise WErr(400, "Missing %s" % excp)
     return UserProfileClient("Web/%s/%s" % (obj, app))
 
-  @asyncGen
   def web_saveAppState(self):
     up = self.__getUP()
     try:
@@ -46,23 +45,21 @@ class UPHandler(WebHandler):
       raise WErr(400, "Missing %s" % excp)
     data = base64.b64encode(zlib.compress(DEncode.encode(state), 9))
     # before we save the state (modify the state) we have to remeber the actual access: ReadAccess and PublishAccess
-    result = yield self.threadTask(up.getVarPermissions, name)
+    result = up.getVarPermissions(name)
     if result['OK']:
       access = result['Value']
     else:
       access = {'ReadAccess': 'USER', 'PublishAccess': 'USER'}  # this is when the application/desktop does not exists.
-    result = yield self.threadTask(up.storeVar, name, data)
+    result = up.storeVar(name, data)
     if not result['OK']:
-      raise WErr.fromSERROR(result)
+      return result
     # change the access to the application/desktop
-    result = yield self.threadTask(up.setVarPermissions, name, access)
+    result = up.setVarPermissions(name, access)
     if not result['OK']:
-      raise WErr.fromSERROR(result)
+      return result
 
-    self.set_status(200)
-    self.finish()
+    return S_OK()
 
-  @asyncGen
   def web_makePublicAppState(self):
     up = self.__getUP()
     try:
@@ -82,27 +79,24 @@ class UPHandler(WebHandler):
       revokeAccess['PublishAccess'] = 'USER'
 
     # TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
-    result = yield self.threadTask(up.setVarPermissions, name, revokeAccess)
+    result = up.setVarPermissions(name, revokeAccess)
     if not result['OK']:
-      raise WErr.fromSERROR(result)
-    self.set_status(200)
-    self.finish()
+      return result
+    return S_OK()
 
-  @asyncGen
   def web_loadAppState(self):
     up = self.__getUP()
     try:
       name = self.request.arguments['name'][-1]
     except KeyError as excp:
       raise WErr(400, "Missing %s" % excp)
-    result = yield self.threadTask(up.retrieveVar, name)
+    result = up.retrieveVar(name)
     if not result['OK']:
-      raise WErr.fromSERROR(result)
+      return result
     data = result['Value']
     data, count = DEncode.decode(zlib.decompress(base64.b64decode(data)))
     self.finish(data)
 
-  @asyncGen
   def web_loadUserAppState(self):
     up = self.__getUP()
     try:
@@ -111,47 +105,44 @@ class UPHandler(WebHandler):
       name = self.request.arguments['name'][-1]
     except KeyError as excp:
       raise WErr(400, "Missing %s" % excp)
-    result = yield self.threadTask(up.retrieveVarFromUser, user, group, name)
+    result = up.retrieveVarFromUser(user, group, name)
     if not result['OK']:
-      raise WErr.fromSERROR(result)
+      return result
     data = result['Value']
     data, count = DEncode.decode(zlib.decompress(base64.b64decode(data)))
     self.finish(data)
 
   auth_listAppState = ['all']
 
-  @asyncGen
   def web_listAppState(self):
     up = self.__getUP()
-    result = yield self.threadTask(up.retrieveAllVars)
+    result = up.retrieveAllVars()
     if not result['OK']:
-      raise WErr.fromSERROR(result)
+      return result
     data = result['Value']
     for k in data:
       # Unpack data
       data[k] = json.loads(DEncode.decode(zlib.decompress(base64.b64decode(data[k])))[0])
     self.finish(data)
 
-  @asyncGen
   def web_delAppState(self):
     up = self.__getUP()
     try:
       name = self.request.arguments['name'][-1]
     except KeyError as excp:
       raise WErr(400, "Missing %s" % excp)
-    result = yield self.threadTask(up.deleteVar, name)
+    result = up.deleteVar(name)
     if not result['OK']:
-      raise WErr.fromSERROR(result)
+      return result
     self.finish()
 
   auth_listPublicDesktopStates = ['all']
 
-  @asyncGen
   def web_listPublicDesktopStates(self):
     up = self.__getUP()
-    result = yield self.threadTask(up.listAvailableVars)
+    result = up.listAvailableVars()
     if not result['OK']:
-      raise WErr.fromSERROR(result)
+      return result
     data = result['Value']
     paramNames = ['UserName', 'Group', 'VO', 'desktop']
 
@@ -160,14 +151,14 @@ class UPHandler(WebHandler):
       records += [dict(zip(paramNames, i))]
     sharedDesktops = {}
     for i in records:
-      result = yield self.threadTask(up.getVarPermissions, i['desktop'])
+      result = up.getVarPermissions(i['desktop'])
       if not result['OK']:
-        raise WErr.fromSERROR(result)
+        return result
       if result['Value']['ReadAccess'] == 'ALL':
         print(i['UserName'], i['Group'], i)
-        result = yield self.threadTask(up.retrieveVarFromUser, i['UserName'], i['Group'], i['desktop'])
+        result = up.retrieveVarFromUser(i['UserName'], i['Group'], i['desktop'])
         if not result['OK']:
-          raise WErr.fromSERROR(result)
+          return result
         if i['UserName'] not in sharedDesktops:
           sharedDesktops[i['UserName']] = {}
           sharedDesktops[i['UserName']][i['desktop']] = json.loads(
@@ -179,7 +170,6 @@ class UPHandler(WebHandler):
           sharedDesktops[i['UserName']]['Metadata'] = i
     self.finish(sharedDesktops)
 
-  @asyncGen
   def web_makePublicDesktopState(self):
     up = UserProfileClient("Web/application/desktop")
     try:
@@ -193,13 +183,11 @@ class UPHandler(WebHandler):
     if access not in ('ALL', 'VO', 'GROUP', 'USER'):
       raise WErr(400, "Invalid access")
     # TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
-    result = yield self.threadTask(up.setVarPermissions, name, {'ReadAccess': access})
+    result = up.setVarPermissions(name, {'ReadAccess': access})
     if not result['OK']:
-      raise WErr.fromSERROR(result)
-    self.set_status(200)
-    self.finish()
+      return result
+    return S_OK()
 
-  @asyncGen
   def web_changeView(self):
     up = self.__getUP()
     try:
@@ -207,29 +195,27 @@ class UPHandler(WebHandler):
       view = self.request.arguments['view'][-1]
     except KeyError as excp:
       raise WErr(400, "Missing %s" % excp)
-    result = yield self.threadTask(up.retrieveVar, desktopName)
+    result = up.retrieveVar(desktopName)
     if not result['OK']:
-      raise WErr.fromSERROR(result)
+      return result
     data = result['Value']
     oDesktop = json.loads(DEncode.decode(zlib.decompress(base64.b64decode(data)))[0])
     oDesktop[unicode('view')] = unicode(view)
     oDesktop = json.dumps(oDesktop)
     data = base64.b64encode(zlib.compress(DEncode.encode(oDesktop), 9))
-    result = yield self.threadTask(up.storeVar, desktopName, data)
+    result = up.storeVar(desktopName, data)
     if not result['OK']:
-      raise WErr.fromSERROR(result)
-    self.set_status(200)
-    self.finish()
+      return result
+    return S_OK()
 
   auth_listPublicStates = ['all']
 
-  @asyncGen
   def web_listPublicStates(self):
 
     user = self.getUserName()
 
     up = self.__getUP()
-    retVal = yield self.threadTask(up.getUserProfileNames, {'PublishAccess': 'ALL'})
+    retVal = up.getUserProfileNames({'PublishAccess': 'ALL'})
 
     if not retVal['OK']:
       raise WErr.fromSERROR(retVal)
@@ -300,7 +286,7 @@ class UPHandler(WebHandler):
         for state in states:
           record = dict(zip(paramNames, state))
           record['app'] = application
-          retVal = yield self.threadTask(up.getVarPermissions, record['name'])
+          retVal = up.getVarPermissions(record['name'])
           if not retVal['OK']:
             raise WErr.fromSERROR(retVal)
           else:
@@ -325,7 +311,6 @@ class UPHandler(WebHandler):
 
     self.finish(desktopsApplications)
 
-  @asyncGen
   def web_publishAppState(self):
     up = self.__getUP()
     try:
@@ -340,8 +325,7 @@ class UPHandler(WebHandler):
     if access not in ('ALL', 'VO', 'GROUP', 'USER'):
       raise WErr(400, "Invalid access")
 
-    result = yield self.threadTask(up.setVarPermissions, name, {'PublishAccess': access, 'ReadAccess': access})
+    result = up.setVarPermissions(name, {'PublishAccess': access, 'ReadAccess': access})
     if not result['OK']:
-      raise WErr.fromSERROR(result)
-    self.set_status(200)
-    self.finish()
+      return result
+    return S_OK()
