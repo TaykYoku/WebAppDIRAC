@@ -79,8 +79,10 @@ def asyncGen(method):
 
 
 class _WebHandler(TornadoREST):
+  __session = None
   __disetConfig = ThreadConfig()
 
+  USE_AUTHZ_GRANTS = ['SSL', 'SESSION', 'VISITOR']
   # Auth requirements
   AUTH_PROPS = None
   # Location of the handler in the URL
@@ -149,21 +151,16 @@ class _WebHandler(TornadoREST):
     """
     return args[3:]
 
-  def prepare(self):
+  def _prepare(self):
     """
       Prepare the request. It reads certificates and check authorizations.
       We make the assumption that there is always going to be a ``method`` argument
       regardless of the HTTP method used
 
     """
-    self.__session = None
-    self.__parseURI()
-    self.__disetConfig.reset()
-    self.__disetConfig.setDecorator(self.__disetBlockDecor)
-    self.__disetDump = self.__disetConfig.dump()
+    super(_WebHandler, self)._prepare()
 
-    super(WebHandler, self).prepare()
-
+    # Configure DISET with user creds
     if self.getDN():
       self.__disetConfig.setDN(self.getDN())
     if self.getID():
@@ -206,9 +203,18 @@ class _WebHandler(TornadoREST):
       :returns: a dict containing the return of :py:meth:`DIRAC.Core.Security.X509Chain.X509Chain.getCredentials`
                 (not a DIRAC structure !)
     """
+    # Reset session before authorization
+    self.__session = None
+    # Parse request URI
+    self.__parseURI()
+    # Reset DISET settings
+    self.__disetConfig.reset()
+    self.__disetConfig.setDecorator(self.__disetBlockDecor)
+    self.__disetDump = self.__disetConfig.dump()
+
     # Authorization type
-    self.__authGrant = 'visitor' if self.request.protocol != "https" else self.get_cookie('authGrant', 'SSL')
-    credDict = super(WebHandler, self)._gatherPeerCredentials(grant=self.__authGrant)
+    self.__authGrant = 'VISITIOR' if self.request.protocol != "https" else self.get_cookie('authGrant', 'SSL')
+    credDict = super(_WebHandler, self)._gatherPeerCredentials(grants=[self.__authGrant])
 
     # Add a group if it present in the request path
     if credDict and self.__group:
