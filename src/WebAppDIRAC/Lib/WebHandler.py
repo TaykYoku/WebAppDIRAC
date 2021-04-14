@@ -21,7 +21,6 @@ from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
