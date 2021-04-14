@@ -24,7 +24,7 @@ class ProxyManagerHandler(WebHandler):
       for i in self.request.arguments:
         tmp[i] = str(self.request.arguments[i])
       callback["extra"] = tmp
-    result = yield self.threadTask(gProxyManager.getDBContents)
+    result = yield self.threadTask(gProxyManager.getUploadedProxiesDetails)  # pylint: disable=no-member
     if not result["OK"]:
       if result.get('Errno', 0) == 1112:
         raise WErr(503, "Connection error")
@@ -32,9 +32,9 @@ class ProxyManagerHandler(WebHandler):
     data = result["Value"]
     users = []
     groups = []
-    for record in data["Records"]:
-      users.append(str(record[0]))
-      groups.append(str(record[2]))
+    for record in data["Dictionaries"]:
+      users.append(record['user'])
+      groups += record['groups']
     users = uniqueElements(users)
     groups = uniqueElements(groups)
     users.sort()

@@ -8,7 +8,6 @@ __RCSID__ = "$Id$"
 
 import ssl
 import json
-import requests
 import functools
 import traceback
 
@@ -31,7 +30,6 @@ from DIRAC.Core.Utilities.JEncode import encode
 from DIRAC.Core.Tornado.Server.TornadoREST import TornadoREST
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import ResourceProtector
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
