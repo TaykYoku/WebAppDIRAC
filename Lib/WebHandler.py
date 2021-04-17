@@ -30,6 +30,9 @@ from DIRAC.Core.Utilities.JEncode import encode
 from DIRAC.Core.Tornado.Server.TornadoREST import TornadoREST
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import ResourceProtector
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
+from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
+from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
+from DIRAC.ConfigurationSystem.Client.Utilities import getWebClient, getAuthorisationServerMetadata
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
@@ -131,6 +134,23 @@ class _WebHandler(TornadoREST):
         :return: str
     """
     return Conf.getAuthSectionForHandler(serviceName)
+  
+  @classmethod
+  def _initializeHandler(cls):
+    """ If you are writing your own framework that follows this class
+        and you need to add something before initializing the service,
+        such as initializing the OAuth client, then you need to change this method.
+    """
+    result = getWebClient()
+    if not result['OK']:
+      raise Exception("Can't load web portal settings: %s" % result['Message'])
+    config = result['Value']
+    result = getAuthorisationServerMetadata()
+    if not result['OK']:
+      raise Exception('Cannot prepare authorization server metadata. %s' % result['Message'])
+    config.update(result['Value'])
+    config['ProviderName'] = 'WebAppClient'
+    cls._authClient = OAuth2IdProvider(**config)
 
   def _getMethodName(self):
     """ Parse method name.
@@ -226,35 +246,36 @@ class _WebHandler(TornadoREST):
 
         :return: dict
     """
+    credDict = {}
+
+    # Session
     sessionID = self.get_secure_cookie('session_id')
+
     if not sessionID:
       self.clear_cookie('authGrant')
-      return S_OK({})
+      return S_OK(credDict)
 
-    session = self.application.getSession(sessionID)
-    # Each session depends on the tokens
-    if not session or not session.token:
+    # Each session depends on the tokens    
+    try:
+      tokens = OAuth2Token(json.loads(sessionID))
+      try:
+        credDict = self.__getCredDictForToken(tokens.access_token)['Value']
+      except Exception as e:
+        # Try to refresh access_token and refres  h_token
+        tokens = self._authClient.refresh_token(self._authClient.metadata['token_endpoint'], refresh_token=tokens.refresh_token)
+        credDict = self.__getCredDictForToken(tokens.access_token)
+        # store it to the secure cookie
+        self.set_secure_cookie('session_id', json.dumps(tokens), secure=True, httponly=True)
+    except Exception as e:
       self.clear_cookie('session_id')
       self.set_cookie('session_id', 'expired')
       self.set_cookie('authGrant', 'Visitor')
-      # self.clear_cookie('authGrant')
-      # raise Exception('%s session expired.' % sessionID)
-      return S_OK({})
+    credDict['Tokens'] = tokens
+    return S_OK(credDict)
 
-    if self.request.headers.get("Authorization"):
-      token = ResourceProtector().acquire_token(self.request)  # , 'changeGroup')
-
-      # Is session active?
-      if session.token.access_token != token.access_token:
-        raise Exception('%s session invalid, token is not match.' % sessionID)
-
-    token = ResourceProtector().validator(session.token.refresh_token, None, #'changeGroup',
-                                          None, 'OR')
-
-    # Update session expired time
-    self.application.updateSession(session)
-    self.__session = session
-    return S_OK({'ID': token.sub, 'issuer': token.issuer, 'group': self.__group, 'validGroup': False})
+  def __getCredDictForToken(self, access_token):
+    self.request.headers['Authorization'] = 'bearer %s' % access_token
+    return self._authzJWT()
 
   @property
   def log(self):
