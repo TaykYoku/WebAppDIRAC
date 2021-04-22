@@ -40,12 +40,13 @@ class RootHandler(WebHandler):
       to = self.request.arguments['to'][-1]
     except KeyError:
       raise WErr(400, "Missing 'to' argument")
-    tokens = self.getRemoteCredentials()['Tokens']
-    token = self._authClient.exchange_token(self._authClient.metadata['token_endpoint'],
-                                            refresh_token=tokens.refresh_token,
-                                            access_token=tokens.access_token,
-                                            scope='g:%s' % to)
-    self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True)
+    # Not for now, too many requests to AS
+    # tokens = self.getRemoteCredentials()['Tokens']
+    # token = self._authClient.exchange_token(self._authClient.metadata['token_endpoint'],
+    #                                         refresh_token=tokens.refresh_token,
+    #                                         access_token=tokens.access_token,
+    #                                         scope='g:%s' % to)
+    # self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True)
     self.__change(group=to)
 
   def web_changeSetup(self):
