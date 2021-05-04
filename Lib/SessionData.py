@@ -172,9 +172,9 @@ class SessionData(object):
       if not result['OK']:
         return result
       data['validGroups'] = result['Value']
-      result = gProxyManager.getGroupsStatusByUsername(username)  # pylint: disable=no-member
-      if result['OK']:
-        data['groupsStatuses'] = result['Value']
+      # result = gProxyManager.getGroupsStatusByUsername(username)  # pylint: disable=no-member
+      # if result['OK']:
+      #   data['groupsStatuses'] = result['Value']
     # Calculate baseURL
     baseURL = [Conf.rootURL().strip("/"),
                "s:%s" % data['setup'],
