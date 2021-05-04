@@ -24,7 +24,7 @@ class RootHandler(WebHandler):
   LOCATION = "/"
 
   @classmethod
-  def initializeHandler(cls):
+  def initializeHandler(cls, serviceInfo):
     """ If you are writing your own framework that follows this class
         and you need to add something before initializing the service,
         such as initializing the OAuth client, then you need to change this method.
