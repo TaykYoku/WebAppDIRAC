@@ -229,10 +229,12 @@ class _WebHandler(TornadoREST):
 
         :return: dict
     """
+    print('.. _authzSESSION')
     credDict = {}
 
     # Session
     sessionID = self.get_secure_cookie('session_id')
+    print('SeesionID: %s' % sessionID)
 
     if not sessionID:
       self.clear_cookie('authGrant')
@@ -240,9 +242,13 @@ class _WebHandler(TornadoREST):
 
     # Each session depends on the tokens    
     try:
+      print('Load tokens..')
       tokens = OAuth2Token(json.loads(sessionID))
+      print(dict(tokens))
       try:
+        print('Get credDict')
         credDict = self.__getCredDictForToken(tokens.access_token)['Value']
+        print(credDict)
       except Exception as e:
         # Try to refresh access_token and refres  h_token
         tokens = self._authClient.refresh_token(self._authClient.metadata['token_endpoint'], refresh_token=tokens.refresh_token)
