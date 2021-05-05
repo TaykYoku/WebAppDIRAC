@@ -126,6 +126,10 @@ class _WebHandler(TornadoREST):
       raise Exception('Cannot prepare authorization server metadata. %s' % result['Message'])
     cls._clientConfig.update(result['Value'])
     cls._clientConfig['ProviderName'] = 'WebAppClient'
+    cls._initializeClient()
+
+  @classmethod
+  def _initializeClient(cls):
     cls._authClient = OAuth2IdProvider(**cls._clientConfig)
     cls._authClient.store_token = cls._storeToken
   
