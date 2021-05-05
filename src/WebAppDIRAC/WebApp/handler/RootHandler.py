@@ -68,13 +68,16 @@ class RootHandler(WebHandler):
     """
     provider = self.get_argument('provider')
 
+    _authClient = OAuth2IdProvider(**self._clientConfig)
+    _authClient.store_token = self._storeToken
+
     # Create PKCE things
     code_verifier = generate_token(48)
     code_challenge = create_s256_code_challenge(code_verifier)
-    url = self._authClient.metadata['authorization_endpoint']
+    url = _authClient.metadata['authorization_endpoint']
     if provider:
       url += '/%s' % provider
-    uri, state = self._authClient.create_authorization_url(url,
+    uri, state = _authClient.create_authorization_url(url,
                                                           code_challenge=code_challenge,
                                                           code_challenge_method='S256')
     authSession = {'state': state, 'code_verifier': code_verifier, 'provider': provider,
@@ -90,9 +93,12 @@ class RootHandler(WebHandler):
     code = self.get_argument('code')
     state = self.get_argument('state')
 
+    _authClient = OAuth2IdProvider(**self._clientConfig)
+    _authClient.store_token = self._storeToken
+
     # Parse response
     authSession = json.loads(self.get_secure_cookie('webauth_session'))
-    result = self._authClient.parseAuthResponse(self.request, authSession)
+    result = _authClient.parseAuthResponse(self.request, authSession)
     self.clear_cookie('webauth_session')
     if not result['OK']:
       return result
@@ -101,7 +107,7 @@ class RootHandler(WebHandler):
     print('WEBAPP: web_loginComplete:')
     print(credDict)
 
-    token = OAuth2Token(self._authClient.token)
+    token = OAuth2Token(_authClient.token)
     # Create session to work through portal
     # self.set_secure_cookie('session_id', json.dumps(dict(session.token)), secure=True, httponly=True)
     self.set_cookie('authGrant', 'Session')
