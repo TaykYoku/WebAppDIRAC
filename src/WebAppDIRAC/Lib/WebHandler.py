@@ -130,6 +130,16 @@ class _WebHandler(TornadoREST):
       raise Exception('Cannot prepare authorization server metadata. %s' % result['Message'])
     cls._clientConfig.update(result['Value'])
     cls._clientConfig['ProviderName'] = 'WebAppClient'
+    cls._authClient = OAuth2IdProvider(**cls._clientConfig)
+    cls._authClient.store_token = cls._storeToken
+  
+  def _storeToken(self, token):
+    """ This method will be called after successful authorization
+        through the authorization server to store DIRAC tokens
+
+        :param dict token: dictionary with tokens
+    """
+    return S_OK(self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True))
 
   @classmethod
   def _getServiceName(cls, request):
