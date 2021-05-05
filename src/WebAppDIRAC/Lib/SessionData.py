@@ -153,7 +153,7 @@ class SessionData(object):
             'menu': self.__getGroupMenu(),
             'user': self.__credDict,
             'validGroups': [],
-            'groupsStatuses': {},
+            # 'groupsStatuses': '',
             'setup': self.__setup,
             'validSetups': gConfig.getSections("/DIRAC/Setups")['Value'],
             'extensions': self.__extensions,
