@@ -7,9 +7,11 @@ from DIRAC.Core.Tornado.Web import Conf
 class CoreHandler(tornado.web.RequestHandler):
 
   def initialize(self, action):
+    print('===... CoreHandler')
     self.__action = action
 
   def get(self, setup, group, route):
+    print('===... CoreHandler_get')
     if self.__action == "addSlash":
       o = urlparse(self.request.uri)
       proto = self.request.protocol
