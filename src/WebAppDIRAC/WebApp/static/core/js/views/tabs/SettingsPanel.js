@@ -183,8 +183,7 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
       menu: []
     };
     // var data = GLOBAL.APP.configData["groupsStatuses"];
-    var groups = GLOBAL.APP.configData["validGroups"];
-    for (group in groups) {
+    for (i in GLOBAL.APP.configData.validGroups) {
     // for (group in data) {
     //   const status = data[group].Status;
     //   const dn = data[group].DN;
@@ -192,8 +191,8 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
     //   const action = data[group].Action;
       // if (status == "ready") {
       button_group.menu.push({
-        group: group,
-        text: group,
+        group: GLOBAL.APP.configData.validGroups[i],
+        text: GLOBAL.APP.configData.validGroups[i],
         handler: function() {
           var me = this;
           var oHref = location.href;
