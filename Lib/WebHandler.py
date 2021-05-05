@@ -247,15 +247,17 @@ class _WebHandler(TornadoREST):
       print(dict(tokens))
       try:
         print('Get credDict')
-        credDict = self.__getCredDictForToken(tokens.access_token)['Value']
+        credDict = self.__getCredDictForToken(tokens.access_token)
         print(credDict)
       except Exception as e:
-        # Try to refresh access_token and refres  h_token
+        print(repr(e))
+        # Try to refresh access_token and refresh_token
         tokens = self._authClient.refresh_token(self._authClient.metadata['token_endpoint'], refresh_token=tokens.refresh_token)
         credDict = self.__getCredDictForToken(tokens.access_token)
         # store it to the secure cookie
         self.set_secure_cookie('session_id', json.dumps(tokens), secure=True, httponly=True)
     except Exception as e:
+      print('2 %s' % repr(e))
       self.clear_cookie('session_id')
       self.set_cookie('session_id', 'expired')
       self.set_cookie('authGrant', 'Visitor')
@@ -264,7 +266,10 @@ class _WebHandler(TornadoREST):
 
   def __getCredDictForToken(self, access_token):
     self.request.headers['Authorization'] = 'bearer %s' % access_token
-    return self._authzJWT()
+    result = self._authzJWT()
+    if not result['OK']:
+      raise Exception(result['Message'])
+    return result['Value']
 
   @property
   def log(self):
