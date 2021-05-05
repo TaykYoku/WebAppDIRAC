@@ -108,7 +108,6 @@ class RootHandler(WebHandler):
     if provider:
       url += '/%s' % provider
     uri, state = self._authClient.create_authorization_url(url,
-                                                          #  code_verifier=code_verifier)
                                                           code_challenge=code_challenge,
                                                           code_challenge_method='S256')
     authSession = {'state': state, 'code_verifier': code_verifier, 'provider': provider,
@@ -131,7 +130,9 @@ class RootHandler(WebHandler):
     if not result['OK']:
       return result
     # FINISHING with IdP auth result
-    username, userID, userProfile = result['Value']
+    credDict = result['Value']
+    print('WEBAPP: web_loginComplete:')
+    print(credDict)
 
     token = OAuth2Token(self._authClient.token)
     # Create session to work through portal
