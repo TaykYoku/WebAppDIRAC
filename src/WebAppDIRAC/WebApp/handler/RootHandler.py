@@ -19,17 +19,17 @@ class RootHandler(WebHandler):
   AUTH_PROPS = "all"
   LOCATION = "/"
 
-  def initializeRequest(self):
-    self._authClient = OAuth2IdProvider(**self._clientConfig)
-    self._authClient.store_token = self._storeToken
+  # def initializeRequest(self):
+  #   self._authClient = OAuth2IdProvider(**self._clientConfig)
+  #   self._authClient.store_token = self._storeToken
 
-  def _storeToken(self, token):
-    """ This method will be called after successful authorization
-        through the authorization server to store DIRAC tokens
+  # def _storeToken(self, token):
+  #   """ This method will be called after successful authorization
+  #       through the authorization server to store DIRAC tokens
 
-        :param dict token: dictionary with tokens
-    """
-    return S_OK(self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True))
+  #       :param dict token: dictionary with tokens
+  #   """
+  #   return S_OK(self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True))
 
   def web_changeGroup(self):
     to = self.get_argument("to")
