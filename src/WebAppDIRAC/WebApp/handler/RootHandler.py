@@ -47,7 +47,7 @@ class RootHandler(WebHandler):
     qs = False
     if 'Referer' in self.request.headers:
       o = urlparse.urlparse(self.request.headers['Referer'])
-      qs = '?%s' % o.query
+      qs = '/?%s' % o.query
     url = [Conf.rootURL().strip("/"), "s:%s" % setup, "g:%s" % group]
     self.redirect("/%s%s" % ("/".join(url), qs))
 
