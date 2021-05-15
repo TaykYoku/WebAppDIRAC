@@ -8,7 +8,7 @@ import tornado.web
 from io import open
 from six.moves.urllib.parse import urlparse
 
-from DIRAC.Core.Tornado.Web import Conf
+from WebAppDIRAC.Lib import Conf
 
 
 class CoreHandler(tornado.web.RequestHandler):
