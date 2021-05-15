@@ -114,7 +114,7 @@ class RootHandler(WebHandler):
 
     group = token.groups[0]
     url = '/'.join([Conf.rootURL().strip("/"), "s:%s" % self.getUserSetup(), "g:%s" % group])
-    nextURL = "/%s?%s" % (url, urlparse.urlparse(authSession['next']).query)
+    nextURL = "/%s/?%s" % (url, urlparse.urlparse(authSession['next']).query)
     access_token = token.access_token
 
     # Save token and go to main page
