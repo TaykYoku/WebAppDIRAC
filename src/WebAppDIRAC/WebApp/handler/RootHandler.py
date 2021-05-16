@@ -94,7 +94,7 @@ class RootHandler(WebHandler):
     state = self.get_argument('state')
 
     authClient = OAuth2IdProvider(**self._clientConfig)
-    authClient.store_token = self._storeToken
+    # authClient.store_token = self._storeToken
 
     # Parse response
     print('>>>>>>> get_secure_cookie')
@@ -139,9 +139,10 @@ class RootHandler(WebHandler):
         </head>
         <body>
           Authorization is done.
+          {{next}}
           <script>
             sessionStorage.setItem("access_token", "{{access_token}}");
-            window.location = "{{next}}";
+            //window.location = "{{next}}";
           </script>
         </body>
       </html>''')
