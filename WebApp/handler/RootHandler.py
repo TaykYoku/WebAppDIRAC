@@ -116,7 +116,7 @@ class RootHandler(WebHandler):
     # Parse response
     authSession = json.loads(self.get_secure_cookie('webauth_session'))
     authClient.fetch_access_token(authClient.metadata['token_endpoint'],
-                                  authorization_response=response.uri,
+                                  authorization_response=self.request.uri,
                                   code_verifier=authSession.get('code_verifier'))
     
     # result = authClient.parseAuthResponse(self.request, authSession)
