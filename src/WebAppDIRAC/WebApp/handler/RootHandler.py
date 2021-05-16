@@ -98,6 +98,8 @@ class RootHandler(WebHandler):
 
     # Parse response
     try:
+      print('>>>>>>> get_secure_cookie')
+      print(self.get_secure_cookie('webauth_session'))
       authSession = json.loads(self.get_secure_cookie('webauth_session'))
     except Exception as e:
       gLogger.debug('Cannot read authorization session:', repr(e))
