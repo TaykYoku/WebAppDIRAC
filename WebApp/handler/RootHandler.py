@@ -114,7 +114,12 @@ class RootHandler(WebHandler):
     authClient.store_token = self._storeToken
 
     # Parse response
-    authSession = json.loads(self.get_secure_cookie('webauth_session'))
+    try:
+      authSession = json.loads(self.get_secure_cookie('webauth_session'))
+    except Exception as e:
+      gLogger.debug('Cannot read authorization session:', repr(e))
+      return self.web_logout()
+
     authClient.fetch_access_token(authClient.metadata['token_endpoint'],
                                   authorization_response=self.request.uri,
                                   code_verifier=authSession.get('code_verifier'))
