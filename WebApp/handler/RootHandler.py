@@ -114,8 +114,6 @@ class RootHandler(WebHandler):
     # authClient.store_token = self._storeToken
 
     # Parse response
-    print('>>>>>>> get_secure_cookie')
-    print(self.get_secure_cookie('webauth_session'))
     authSession = json.loads(self.get_secure_cookie('webauth_session'))
 
     authClient.fetch_access_token(authClient.metadata['token_endpoint'],
@@ -128,7 +126,7 @@ class RootHandler(WebHandler):
     #   return result
     # FINISHING with IdP auth result
     # credDict = result['Value']
-    print('WEBAPP: web_loginComplete:')
+    # print('WEBAPP: web_loginComplete:')
     # print(credDict)
 
     token = OAuth2Token(authClient.token)
@@ -139,8 +137,6 @@ class RootHandler(WebHandler):
     group = token.groups[0]
     url = '/'.join([Conf.rootURL().strip("/"), "s:%s" % self.getUserSetup(), "g:%s" % group])
     nextURL = "/%s/?%s" % (url, urlparse.urlparse(authSession['next']).query)
-    print('NEXT: >>>>>')
-    print(nextURL)
     # Save token and go to main page
     # with document('DIRAC authentication') as html:
     #   dom.div('Authorization is done.',
@@ -156,10 +152,9 @@ class RootHandler(WebHandler):
         </head>
         <body>
           Authorization is done.
-          {{next}}
           <script>
             sessionStorage.setItem("access_token", "{{access_token}}");
-            //window.location = "{{next}}";
+            window.location = "{{next}}";
           </script>
         </body>
       </html>''')
