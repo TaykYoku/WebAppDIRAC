@@ -122,8 +122,8 @@ class RootHandler(WebHandler):
     group = token.groups[0]
     url = '/'.join([Conf.rootURL().strip("/"), "s:%s" % self.getUserSetup(), "g:%s" % group])
     nextURL = "/%s/?%s" % (url, urlparse.urlparse(authSession['next']).query)
-    access_token = token.access_token
-
+    print('NEXT: >>>>>')
+    print(nextURL)
     # Save token and go to main page
     # with document('DIRAC authentication') as html:
     #   dom.div('Authorization is done.',
@@ -146,7 +146,7 @@ class RootHandler(WebHandler):
           </script>
         </body>
       </html>''')
-    return t.generate(next=nextURL, access_token=access_token)
+    return t.generate(next=nextURL, access_token=token.access_token)
 
   def web_index(self):
     # Render base template
