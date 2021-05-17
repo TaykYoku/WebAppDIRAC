@@ -92,9 +92,7 @@ class RootHandler(WebHandler):
                                   authorization_response=self.request.uri,
                                   code_verifier=authSession.get('code_verifier'))
     
-    # result = authClient.parseAuthResponse(self.request, authSession)
     self.clear_cookie('webauth_session')
-
 
     token = OAuth2Token(authClient.token)
     # Create session to work through portal
