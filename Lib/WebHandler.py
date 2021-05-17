@@ -8,6 +8,7 @@ __RCSID__ = "$Id$"
 
 import ssl
 import json
+import pprint
 import functools
 import traceback
 
@@ -128,19 +129,6 @@ class _WebHandler(TornadoREST):
     cls._initializeClient()
 
   @classmethod
-  def _initializeClient(cls):
-    cls._authClient = OAuth2IdProvider(**cls._clientConfig)
-    cls._authClient.store_token = cls._storeToken
-  
-  def _storeToken(self, token):
-    """ This method will be called after successful authorization
-        through the authorization server to store DIRAC tokens
-
-        :param dict token: dictionary with tokens
-    """
-    return S_OK(self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True))
-
-  @classmethod
   def _getServiceName(cls, request):
     """ Search service name in request
 
@@ -258,12 +246,10 @@ class _WebHandler(TornadoREST):
 
         :return: dict
     """
-    print('.. _authzSESSION')
     credDict = {}
 
     # Session
     sessionID = self.get_secure_cookie('session_id')
-    print('SeesionID: %s' % sessionID)
 
     if not sessionID:
       self.clear_cookie('authGrant')
@@ -271,26 +257,24 @@ class _WebHandler(TornadoREST):
 
     # Each session depends on the tokens    
     try:
-      print('Load tokens..')
+      gLogger.debug('Load session tokens..')
       tokens = OAuth2Token(json.loads(sessionID))
-      print(dict(tokens))
+      gLogger.debug('Found session tokens:\n', pprint.pformat(dict(tokens)))
       try:
-        print('Get credDict')
         credDict = self.__getCredDictForToken(tokens.access_token)
-        print(credDict)
       except Exception as e:
-        print(repr(e))
+        gLogger.debug('Cannot check access token %s, try to fetch..' % repr(e))
         # Try to refresh access_token and refresh_token
-        tokens = self._authClient.refresh_token(self._authClient.metadata['token_endpoint'], refresh_token=tokens.refresh_token)
+        tokens = OAuth2IdProvider(**cls._clientConfig).refreshToken(tokens.refresh_token)
         credDict = self.__getCredDictForToken(tokens.access_token)
         # store it to the secure cookie
         self.set_secure_cookie('session_id', json.dumps(tokens), secure=True, httponly=True)
+        credDict['Tokens'] = tokens
     except Exception as e:
-      print('2 %s' % repr(e))
+      gLogger.debug(repr(e))
       self.clear_cookie('session_id')
       self.set_cookie('session_id', 'expired')
       self.set_cookie('authGrant', 'Visitor')
-    credDict['Tokens'] = tokens
     return S_OK(credDict)
 
   def __getCredDictForToken(self, access_token):
