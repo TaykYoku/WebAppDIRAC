@@ -3,8 +3,6 @@ import os
 import json
 import urlparse
 from dominate import document, tags as dom
-from authlib.common.security import generate_token
-from authlib.oauth2.rfc7636 import create_s256_code_challenge
 
 from tornado.escape import xhtml_escape
 from tornado import template
