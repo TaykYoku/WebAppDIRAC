@@ -10,7 +10,6 @@ from DIRAC import rootPath, gLogger, S_OK, gConfig
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, asyncGen
 from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
-from DIRAC.ConfigurationSystem.Client.Utilities import getWebClient, getAuthorisationServerMetadata
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 
 
@@ -49,7 +48,9 @@ class RootHandler(WebHandler):
     if token:
       token = json.loads(token)
       if token.get('refresh_token'):
-        OAuth2IdProvider(**self._clientConfig).revokeToken(token['refresh_token'])
+        cli = self._idps.getIdProvider('WebAppDIRAC')
+        cli.token = token
+        cli.revokeToken(token['refresh_token'])
     self.clear_cookie('session_id')
     self.set_cookie('authGrant', 'Visitor')
     self.redirect('/DIRAC')
@@ -57,24 +58,18 @@ class RootHandler(WebHandler):
   def web_login(self):
     """ Start authorization flow
     """
+    cli = self._idps.getIdProvider('WebAppDIRAC')
     provider = self.get_argument('provider')
-
-    authClient = OAuth2IdProvider(**self._clientConfig)
-    authClient.store_token = self._storeToken
-
-    # Create PKCE things
-    code_verifier = generate_token(48)
-    code_challenge = create_s256_code_challenge(code_verifier)
-    url = authClient.metadata['authorization_endpoint']
     if provider:
-      url += '/%s' % provider
-    uri, state = authClient.create_authorization_url(url, code_challenge=code_challenge,
-                                                     code_challenge_method='S256')
-    authSession = {'state': state, 'code_verifier': code_verifier, 'provider': provider,
-                   'next': self.get_argument('next', '/DIRAC')}
-    self.set_secure_cookie('webauth_session', json.dumps(authSession), secure=True, httponly=True)
-    self.set_cookie('authGrant', 'Visitor')
+      cli.metadata['authorization_endpoint'] += '/%s' % provider
+    uri, state, seesion = cli.submitNewSession()
+
+    # Save authorisation session
+    session.update(dict(state=state, provider=provider, next=self.get_argument('next', '/DIRAC')))
+    self.set_secure_cookie('webauth_session', json.dumps(session), secure=True, httponly=True)
+
     # Redirect to authorization server
+    self.set_cookie('authGrant', 'Visitor')
     self.redirect(uri)
 
   def web_loginComplete(self):
@@ -83,18 +78,16 @@ class RootHandler(WebHandler):
     code = self.get_argument('code')
     state = self.get_argument('state')
 
-    authClient = OAuth2IdProvider(**self._clientConfig)
+    cli = self._idps.getIdProvider('WebAppDIRAC')
 
     # Parse response
     authSession = json.loads(self.get_secure_cookie('webauth_session'))
 
-    authClient.fetch_access_token(authClient.metadata['token_endpoint'],
-                                  authorization_response=self.request.uri,
-                                  code_verifier=authSession.get('code_verifier'))
+    token = cli.fetchToken(authorization_response=self.request.uri, code_verifier=authSession.get('code_verifier')))
     
+    # Remove authorisation session
     self.clear_cookie('webauth_session')
 
-    token = OAuth2Token(authClient.token)
     # Create session to work through portal
     self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True)
     self.set_cookie('authGrant', 'Session')

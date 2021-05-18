@@ -23,7 +23,6 @@ from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
-from DIRAC.ConfigurationSystem.Client.Utilities import getWebClient, getAuthorisationServerMetadata
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
@@ -114,22 +113,6 @@ class _WebHandler(TornadoREST):
     def wrapper(*args, **kwargs):
       raise RuntimeError("All DISET calls must be made from inside a Threaded Task!")
     return wrapper
-
-  @classmethod
-  def _initializeHandler(cls):
-    """ If you are writing your own framework that follows this class
-        and you need to add something before initializing the service,
-        such as initializing the OAuth client, then you need to change this method.
-    """
-    result = getWebClient()
-    if not result['OK']:
-      raise Exception("Can't load web portal settings: %s" % result['Message'])
-    cls._clientConfig = result['Value']
-    result = getAuthorisationServerMetadata()
-    if not result['OK']:
-      raise Exception('Cannot prepare authorization server metadata. %s' % result['Message'])
-    cls._clientConfig.update(result['Value'])
-    cls._clientConfig['ProviderName'] = 'WebAppClient'
 
   @classmethod
   def _getServiceName(cls, request):
@@ -326,13 +309,16 @@ class _WebHandler(TornadoREST):
       gLogger.debug('Load session tokens..')
       tokens = OAuth2Token(json.loads(sessionID))
       gLogger.debug('Found session tokens:\n', pprint.pformat(dict(tokens)))
+      cli = self._idps.getIdProvider('WebAppDIRAC')
       try:
-        credDict = self.__getCredDictForToken(tokens.access_token)
+        payload = cli.verifyToken(tokens.access_token)
+        credDict = cli.researchGroup(payload, tokens.access_token)
       except Exception as e:
         gLogger.debug('Cannot check access token %s, try to fetch..' % repr(e))
         # Try to refresh access_token and refresh_token
-        tokens = OAuth2IdProvider(**cls._clientConfig).refreshToken(tokens.refresh_token)
-        credDict = self.__getCredDictForToken(tokens.access_token)
+        tokens = cli.refreshToken(tokens.refresh_token)
+        payload = cli.verifyToken(tokens.access_token)
+        credDict = cli.researchGroup(payload, tokens.access_token)
         # store it to the secure cookie
         self.set_secure_cookie('session_id', json.dumps(tokens), secure=True, httponly=True)
         credDict['Tokens'] = tokens
