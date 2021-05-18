@@ -242,7 +242,10 @@ class _WebHandler(TornadoREST):
       gLogger.debug('Load session tokens..')
       tokens = OAuth2Token(json.loads(sessionID))
       gLogger.debug('Found session tokens:\n', pprint.pformat(dict(tokens)))
-      cli = self._idps.getIdProvider('WebAppDIRAC')
+      result = self._idps.getIdProvider('WebAppDIRAC')
+      if not result['OK']:
+        return result
+      cli = result['Value']
       try:
         payload = cli.verifyToken(tokens.access_token)
         credDict = cli.researchGroup(payload, tokens.access_token)

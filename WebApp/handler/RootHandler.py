@@ -65,9 +65,11 @@ class RootHandler(WebHandler):
     if token:
       token = json.loads(token)
       if token.get('refresh_token'):
-        cli = self._idps.getIdProvider('WebAppDIRAC')
-        cli.token = token
-        cli.revokeToken(token['refresh_token'])
+        result = self._idps.getIdProvider('WebAppDIRAC')
+        if result['OK']:
+          cli = result['Value']
+          cli.token = token
+          cli.revokeToken(token['refresh_token'])
     self.clear_cookie('session_id')
     self.set_cookie('authGrant', 'Visitor')
     self.redirect('/DIRAC')
@@ -75,7 +77,10 @@ class RootHandler(WebHandler):
   def web_login(self):
     """ Start authorization flow
     """
-    cli = self._idps.getIdProvider('WebAppDIRAC')
+    result = self._idps.getIdProvider('WebAppDIRAC')
+    if not result['OK']:
+      return result
+    cli = result['Value']
     provider = self.get_argument('provider')
     if provider:
       cli.metadata['authorization_endpoint'] += '/%s' % provider
@@ -95,7 +100,10 @@ class RootHandler(WebHandler):
     code = self.get_argument('code')
     state = self.get_argument('state')
 
-    cli = self._idps.getIdProvider('WebAppDIRAC')
+    result = self._idps.getIdProvider('WebAppDIRAC')
+    if not result['OK']:
+      return result
+    cli = result['Value']
 
     # Parse response
     authSession = json.loads(self.get_secure_cookie('webauth_session'))
