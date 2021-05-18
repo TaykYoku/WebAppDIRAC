@@ -66,7 +66,7 @@ class RootHandler(WebHandler):
     cli = result['Value']
     provider = self.get_argument('provider')
     if provider:
-      cli.metadata['authorization_endpoint'] += '/%s' % provider
+      cli.metadata['authorization_endpoint'] = '%s/%s' % (cli.get_metadata('authorization_endpoint'), provider)
     uri, state, seesion = cli.submitNewSession()
 
     # Save authorisation session
