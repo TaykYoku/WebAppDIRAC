@@ -83,7 +83,7 @@ class RootHandler(WebHandler):
     # Parse response
     authSession = json.loads(self.get_secure_cookie('webauth_session'))
 
-    token = cli.fetchToken(authorization_response=self.request.uri, code_verifier=authSession.get('code_verifier')))
+    token = cli.fetchToken(authorization_response=self.request.uri, code_verifier=authSession.get('code_verifier'))
     
     # Remove authorisation session
     self.clear_cookie('webauth_session')
