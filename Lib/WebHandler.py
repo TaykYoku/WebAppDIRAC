@@ -250,6 +250,7 @@ class _WebHandler(TornadoREST):
         payload = cli.verifyToken(tokens.access_token)
         credDict = cli.researchGroup(payload, tokens.access_token)
       except Exception as e:
+        pprint.pprint(traceback.format_exc())
         gLogger.debug('Cannot check access token %s, try to fetch..' % repr(e))
         # Try to refresh access_token and refresh_token
         tokens = cli.refreshToken(tokens.refresh_token)
