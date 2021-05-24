@@ -314,14 +314,14 @@ class _WebHandler(TornadoREST):
         return result
       cli = result['Value']
       try:
-        payload = cli.verifyToken(tokens.access_token)
+        payload = cli.verifyToken(tokens.access_token, self._jwks[cli.issuer])
         credDict = cli.researchGroup(payload, tokens.access_token)
       except Exception as e:
         pprint.pprint(traceback.format_exc())
         gLogger.debug('Cannot check access token %s, try to fetch..' % repr(e))
         # Try to refresh access_token and refresh_token
         tokens = cli.refreshToken(tokens.refresh_token)
-        payload = cli.verifyToken(tokens.access_token)
+        payload = cli.verifyToken(tokens.access_token, self._jwks[cli.issuer])
         credDict = cli.researchGroup(payload, tokens.access_token)
         # store it to the secure cookie
         self.set_secure_cookie('session_id', json.dumps(tokens), secure=True, httponly=True)
