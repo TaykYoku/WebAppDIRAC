@@ -16,7 +16,7 @@ from DIRAC.Core.Utilities.DIRACScript import DIRACScript
 
 @DIRACScript()
 def main():
-  # Must be define BEFORE any dirac import
+  # Must be define BEFORE any dirac import.
   os.environ['DIRAC_USE_TORNADO_IOLOOP'] = "True"
 
   from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
