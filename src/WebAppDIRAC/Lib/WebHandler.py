@@ -253,7 +253,7 @@ class _WebHandler(TornadoREST):
 
     # Each session depends on the tokens    
     try:
-      gLogger.debug('Load session tokens..')
+      gLogger.debug('Load session tokens..', sessionID)
       token = OAuth2Token(sessionID)
       gLogger.debug('Found session tokens:\n', pprint.pformat(token))
       try:
