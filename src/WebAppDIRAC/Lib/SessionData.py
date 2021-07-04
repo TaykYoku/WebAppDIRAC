@@ -11,7 +11,7 @@ from DIRAC.Core.Utilities import List
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
-from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
+# from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 
 from WebAppDIRAC.Lib import Conf
 

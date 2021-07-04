@@ -39,6 +39,7 @@ from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.SessionData import SessionData
 
+
 global gThreadPool
 gThreadPool = ThreadPoolExecutor(100)
 sLog = gLogger.getSubLogger(__name__)
@@ -188,9 +189,6 @@ class _WebHandler(TornadoREST):
     # Configure DISET with user creds
     if self.getDN():
       self.__disetConfig.setDN(self.getDN())
-    # if self.getID():
-    #   self.__disetConfig.setID(self.getID())
-    # pylint: disable=no-value-for-parameter
     if self.getUserGroup():  # pylint: disable=no-value-for-parameter
       self.__disetConfig.setGroup(self.getUserGroup())  # pylint: disable=no-value-for-parameter
     self.__disetConfig.setSetup(self.__setup)
@@ -256,10 +254,10 @@ class _WebHandler(TornadoREST):
     # Each session depends on the tokens    
     try:
       gLogger.debug('Load session tokens..')
-      token = OAuth2Token(json.loads(sessionID))
-      gLogger.debug('Found session tokens:\n', pprint.pformat(dict(token)))
+      token = OAuth2Token(sessionID)
+      gLogger.debug('Found session tokens:\n', pprint.pformat(token))
       try:
-        return self._authzJWT(token.access_token)
+        return self._authzJWT(token['access_token'])
       except Exception as e:
         gLogger.debug('Cannot check access token %s, try to fetch..' % repr(e))
         # Try to refresh access_token and refresh_token
@@ -267,10 +265,10 @@ class _WebHandler(TornadoREST):
         if not result['OK']:
           return result
         cli = result['Value']
-        token = cli.refreshToken(token.refresh_token)
+        token = cli.refreshToken(token['refresh_token'])
         # store it to the secure cookie
         self.set_secure_cookie('session_id', json.dumps(token), secure=True, httponly=True)
-        return self._authzJWT(token.access_token)
+        return self._authzJWT(token['access_token'])
 
     except Exception as e:
       gLogger.debug(repr(e))

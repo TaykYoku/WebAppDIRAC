@@ -6,11 +6,9 @@ __RCSID__ = "$Id$"
 
 import tornado.web
 from io import open
-from six.moves import urllib_parse as urlparse
+from six.moves.urllib.parse import urlparse
 
 from WebAppDIRAC.Lib import Conf
-
-__RCSID__ = "$Id$"
 
 
 class CoreHandler(tornado.web.RequestHandler):

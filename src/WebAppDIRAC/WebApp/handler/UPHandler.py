@@ -103,7 +103,7 @@ class UPHandler(WebHandler):
     for k in data:
       # Unpack data
       data[k] = json.loads(DEncode.decode(zlib.decompress(base64.b64decode(data[k])))[0])
-    self.finish(data)
+    return data
 
   def web_delAppState(self):
     up = self.__getUP()
@@ -145,10 +145,7 @@ class UPHandler(WebHandler):
     if access not in ('ALL', 'VO', 'GROUP', 'USER'):
       raise WErr(400, "Invalid access")
     # TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
-    result = up.setVarPermissions(name, {'ReadAccess': access})
-    if not result['OK']:
-      return result
-    return S_OK()
+    return up.setVarPermissions(name, {'ReadAccess': access})
 
   def web_changeView(self):
     up = self.__getUP()
