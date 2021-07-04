@@ -8,6 +8,7 @@ __RCSID__ = "$Id$"
 
 import ssl
 import json
+import pprint
 import datetime
 import requests
 import tempfile
