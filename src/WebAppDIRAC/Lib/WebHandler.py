@@ -107,8 +107,7 @@ class _WebHandler(TornadoREST):
     """
     if data and isinstance(data, dict):
       data = json.dumps(data, default=defaultEncoder)
-    print(self)
-    return super(WebHandler, self).finish(data, *args, **kwargs)
+    return super(_WebHandler, self).finish(data, *args, **kwargs)
 
   def threadTask(self, method, *args, **kwargs):
     def threadJob(*targs, **tkwargs):
