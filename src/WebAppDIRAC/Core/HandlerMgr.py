@@ -127,6 +127,8 @@ class HandlerMgr(object):
         self.log.verbose(" - WebSocket %s -> %s" % (handlerRoute, hn))
         self.log.debug("  * %s" % route)
         continue
+      from pprint import pprint
+      pprint(inspect.getmembers(handler))
       # Look for methods that are exported
       for mName, mObj in inspect.getmembers(handler):
         if inspect.ismethod(mObj) and mName.find(handler.METHOD_PREFIX) == 0:
