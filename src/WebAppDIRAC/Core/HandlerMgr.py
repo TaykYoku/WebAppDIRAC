@@ -130,7 +130,7 @@ class HandlerMgr(object):
       from pprint import pprint
       # Look for methods that are exported
       for mName, mObj in inspect.getmembers(handler):
-        if inspect.isfunction(mObj) and mName.find(handler.METHOD_PREFIX) == 0:
+        if inspect.isroutine(mObj) and mName.find(handler.METHOD_PREFIX) == 0:
           self.log.debug('  Find %s method' % mName)
           pprint(inspect.getargspec(mObj))
           methodName = mName[len(handler.METHOD_PREFIX):]
@@ -140,7 +140,7 @@ class HandlerMgr(object):
             self.log.verbose(" - Route %s -> %s.web_index" % (handlerRoute, hn))
             route = "%s(%s/)" % (baseRoute, handlerRoute)
             self.__routes.append((route, handler))
-            # self.__routes.append(("%s(%s)" % (baseRoute, handlerRoute), CoreHandler, dict(action='addSlash')))
+            self.__routes.append(("%s(%s)" % (baseRoute, handlerRoute), CoreHandler, dict(action='addSlash')))
           else:
             # Normal methods get the method appended without web_
             self.log.verbose(" - Route %s/%s ->  %s.%s" % (handlerRoute, mName[4:], hn, mName))
@@ -150,11 +150,11 @@ class HandlerMgr(object):
               route += r'[\/]?%s' % '/'.join(args)
             self.__routes.append((route, handler))
           self.log.debug("  * %s" % route)
-    # Send to root
-    # self.__routes.append(("%s(/?)" % self.__setupGroupRE, CoreHandler, dict(action="sendToRoot")))
-    # if self.__baseURL:
-      # self.__routes.append(("/%s%s()" % (self.__baseURL, self.__setupGroupRE),
-                            # CoreHandler, dict(action="sendToRoot")))
+    # Send to root.
+    self.__routes.append(("%s(/?)" % self.__setupGroupRE, CoreHandler, dict(action="sendToRoot")))
+    if self.__baseURL:
+      self.__routes.append(("/%s%s()" % (self.__baseURL, self.__setupGroupRE),
+                            CoreHandler, dict(action="sendToRoot")))
     return S_OK()
 
   def getHandlers(self):
