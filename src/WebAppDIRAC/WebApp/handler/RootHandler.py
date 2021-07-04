@@ -53,7 +53,7 @@ class RootHandler(WebHandler):
     if token:
       token = json.loads(token)
       if token.get('refresh_token'):
-        result = self._idps.getIdProvider('WebAppDIRAC')
+        result = self._idps.getIdProvider('DIRACWeb')
         if result['OK']:
           cli = result['Value']
           cli.token = token
@@ -67,7 +67,7 @@ class RootHandler(WebHandler):
   def web_login(self):
     """ Start authorization flow
     """
-    result = self._idps.getIdProvider('WebAppDIRAC')
+    result = self._idps.getIdProvider('DIRACWeb')
     if not result['OK']:
       raise WErr(500, result['Message'])
     cli = result['Value']
@@ -93,7 +93,7 @@ class RootHandler(WebHandler):
     code = self.get_argument('code')
     state = self.get_argument('state')
 
-    result = self._idps.getIdProvider('WebAppDIRAC')
+    result = self._idps.getIdProvider('DIRACWeb')
     if not result['OK']:
       return result
     cli = result['Value']
