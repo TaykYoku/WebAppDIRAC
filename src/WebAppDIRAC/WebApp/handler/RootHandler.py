@@ -69,7 +69,7 @@ class RootHandler(WebHandler):
     """
     result = self._idps.getIdProvider('WebAppDIRAC')
     if not result['OK']:
-      raise WErr(500, self.result['Message'])
+      raise WErr(500, result['Message'])
     cli = result['Value']
     provider = self.get_argument('provider')
     if provider:
