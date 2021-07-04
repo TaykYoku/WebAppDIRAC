@@ -131,7 +131,7 @@ class HandlerMgr(object):
       print(handler.METHOD_PREFIX)
       # Look for methods that are exported
       for mName, mObj in inspect.getmembers(handler):
-        print(inspect.ismethod(mObj))
+        print('%s: %s' % (mName, inspect.ismethod(mObj)))
         if inspect.ismethod(mObj) and mName.find(handler.METHOD_PREFIX) == 0:
           self.log.debug('  Find %s method' % mName)
           pprint(inspect.getargspec(mObj))
