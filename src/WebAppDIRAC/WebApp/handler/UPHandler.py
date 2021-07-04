@@ -34,23 +34,18 @@ class UPHandler(WebHandler):
   def web_saveAppState(self):
     up = self.__getUP()
     name = self.get_argument("name")
-    state = self.get_argument("state")
-    data = base64.b64encode(zlib.compress(DEncode.encode(state), 9))
+    data = base64.b64encode(zlib.compress(DEncode.encode(self.get_argument("state")), 9))
     # before we save the state (modify the state) we have to remember the actual access: ReadAccess and PublishAccess
     result = up.getVarPermissions(name)
+    access = {'ReadAccess': 'USER', 'PublishAccess': 'USER'}  # this is when the application/desktop does not exists.
     if result['OK']:
       access = result['Value']
-    else:
-      access = {'ReadAccess': 'USER', 'PublishAccess': 'USER'}  # this is when the application/desktop does not exists.
+      
     result = up.storeVar(name, data)
-    if not result['OK']:
-      return result
-    # change the access to the application/desktop
-    result = up.setVarPermissions(name, access)
-    if not result['OK']:
-      return result
-
-    return S_OK()
+    if result['OK']:
+      # change the access to the application/desktop
+      result = up.setVarPermissions(name, access)
+    return S_OK() if result['OK'] else result
 
   def web_makePublicAppState(self):
     up = self.__getUP()
@@ -65,32 +60,25 @@ class UPHandler(WebHandler):
       revokeAccess['PublishAccess'] = 'USER'
 
     # TODO: Check access is in either 'ALL', 'VO' or 'GROUP'
-    result = up.setVarPermissions(name, revokeAccess)
-    if not result['OK']:
-      return result
-    return S_OK()
+    return up.setVarPermissions(name, revokeAccess)
 
   def web_loadAppState(self):
     up = self.__getUP()
-    name = self.get_argument("name")
-    result = up.retrieveVar(name)
+    result = up.retrieveVar(self.get_argument("name"))
     if not result['OK']:
       return result
     data = result['Value']
-    data, count = DEncode.decode(zlib.decompress(base64.b64decode(data)))
-    return data
+    return DEncode.decode(zlib.decompress(base64.b64decode(data)))[0]
 
   def web_loadUserAppState(self):
     up = self.__getUP()
-    user = self.get_argument("user")
-    group = self.get_argument("group")
-    name = self.get_argument("name")
-    result = up.retrieveVarFromUser(user, group, name)
+    result = up.retrieveVarFromUser(self.get_argument("user"),
+                                    self.get_argument("group"),
+                                    self.get_argument("name"))
     if not result['OK']:
       return result
     data = result['Value']
-    data, count = DEncode.decode(zlib.decompress(base64.b64decode(data)))
-    return data
+    return DEncode.decode(zlib.decompress(base64.b64decode(data)))[0]
 
   auth_listAppState = ['all']
 
@@ -100,10 +88,8 @@ class UPHandler(WebHandler):
     if not result['OK']:
       return result
     data = result['Value']
-    for k in data:
-      # Unpack data
-      data[k] = json.loads(DEncode.decode(zlib.decompress(base64.b64decode(data[k])))[0])
-    return data
+    # Unpack data
+    return {k: json.loads(DEncode.decode(zlib.decompress(base64.b64decode(data[k])))[0]) for k in data}
 
   def web_delAppState(self):
     up = self.__getUP()
