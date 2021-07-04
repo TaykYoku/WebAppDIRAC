@@ -21,12 +21,9 @@ class UPHandler(WebHandler):
 
   def _prepare(self):
     super(UPHandler, self)._prepare()
-    # if not self.isRegisteredUser():
-    #   raise WErr(401, "Not a registered user")
     self.set_header("Pragma", "no-cache")
     self.set_header("Cache-Control", "max-age=0, no-store, no-cache, must-revalidate")
-    # Do not use the defined user setup. Use the web one to show the same profile independently of
-    # user setup
+    # Do not use the defined user setup. Use the web one to show the same profile independently of user setup
     self.__tc.setSetup(False)
 
   def __getUP(self):
@@ -40,7 +37,7 @@ class UPHandler(WebHandler):
     state = self.get_argument("state")
     data = base64.b64encode(zlib.compress(DEncode.encode(state), 9))
     # before we save the state (modify the state) we have to remember the actual access: ReadAccess and PublishAccess
-    result = yield self.threadTask(up.getVarPermissions, name)
+    result = up.getVarPermissions(name)
     if result['OK']:
       access = result['Value']
     else:
@@ -76,24 +73,24 @@ class UPHandler(WebHandler):
   def web_loadAppState(self):
     up = self.__getUP()
     name = self.get_argument("name")
-    result = yield self.threadTask(up.retrieveVar, name)
+    result = up.retrieveVar(name)
     if not result['OK']:
       return result
     data = result['Value']
     data, count = DEncode.decode(zlib.decompress(base64.b64decode(data)))
-    self.finish(data)
+    return data
 
   def web_loadUserAppState(self):
     up = self.__getUP()
     user = self.get_argument("user")
     group = self.get_argument("group")
     name = self.get_argument("name")
-    result = yield self.threadTask(up.retrieveVarFromUser, user, group, name)
+    result = up.retrieveVarFromUser(user, group, name)
     if not result['OK']:
       return result
     data = result['Value']
     data, count = DEncode.decode(zlib.decompress(base64.b64decode(data)))
-    self.finish(data)
+    return data
 
   auth_listAppState = ['all']
 
@@ -111,10 +108,7 @@ class UPHandler(WebHandler):
   def web_delAppState(self):
     up = self.__getUP()
     name = self.get_argument("name")
-    result = yield self.threadTask(up.deleteVar, name)
-    if not result['OK']:
-      return result
-    self.finish()
+    return up.deleteVar(name)
 
   auth_listPublicDesktopStates = ['all']
 
@@ -142,7 +136,7 @@ class UPHandler(WebHandler):
         sharedDesktops[i['UserName']][i['desktop']] = json.loads(
             DEncode.decode(zlib.decompress(base64.b64decode(result['Value'])))[0])
         sharedDesktops[i['UserName']]['Metadata'] = i
-    self.finish(sharedDesktops)
+    return sharedDesktops
 
   def web_makePublicDesktopState(self):
     up = UserProfileClient("Web/application/desktop")
@@ -160,7 +154,7 @@ class UPHandler(WebHandler):
     up = self.__getUP()
     desktopName = self.get_argument("desktop")
     view = self.get_argument("view")
-    result = yield self.threadTask(up.retrieveVar, desktopName)
+    result = up.retrieveVar(desktopName)
     if not result['OK']:
       return result
     data = result['Value']
@@ -168,10 +162,7 @@ class UPHandler(WebHandler):
     oDesktop[six.text_type('view')] = six.text_type(view)
     oDesktop = json.dumps(oDesktop)
     data = base64.b64encode(zlib.compress(DEncode.encode(oDesktop), 9))
-    result = up.storeVar(desktopName, data)
-    if not result['OK']:
-      return result
-    return S_OK()
+    return up.storeVar(desktopName, data)
 
   auth_listPublicStates = ['all']
 
@@ -180,7 +171,7 @@ class UPHandler(WebHandler):
     user = self.getUserName()
 
     up = self.__getUP()
-    retVal = yield self.threadTask(up.listStatesForWeb, {'PublishAccess': 'ALL'})
+    retVal = up.getUserProfileNames({'PublishAccess': 'ALL'})
     if not retVal['OK']:
       raise WErr.fromSERROR(retVal)
     records = retVal['Value']
@@ -254,7 +245,7 @@ class UPHandler(WebHandler):
           else:
             sharedapplications['children'].append(record)
 
-    self.finish(desktopsApplications)
+    return desktopsApplications
 
   def web_publishAppState(self):
     up = self.__getUP()
@@ -263,7 +254,4 @@ class UPHandler(WebHandler):
     if access not in ('ALL', 'VO', 'GROUP', 'USER'):
       raise WErr(400, "Invalid access")
 
-    result = up.setVarPermissions(name, {'PublishAccess': access, 'ReadAccess': access})
-    if not result['OK']:
-      return result
-    return S_OK()
+    return up.setVarPermissions(name, {'PublishAccess': access, 'ReadAccess': access})

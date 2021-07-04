@@ -21,6 +21,8 @@ class SystemAdministrationHandler(WebHandler):
 
   @asyncGen
   def web_getSysInfo(self):
+    """ Provide information about hosts state from database
+    """
     DN = self.getDN()
     group = self.getUserGroup()
     client = ComponentMonitoringClient(delegatedDN=DN, delegatedGroup=group)

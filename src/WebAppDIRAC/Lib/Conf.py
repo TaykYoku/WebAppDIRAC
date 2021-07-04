@@ -13,7 +13,6 @@ from DIRAC import gConfig
 from DIRAC.Core.Security import Locations, X509Chain, X509CRL
 from DIRAC.Core.Utilities.Decorators import deprecated
 
-
 BASECS = "/WebApp"
 
 

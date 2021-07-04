@@ -1,5 +1,8 @@
 import re
 import os
+import json
+import pprint
+from dominate import document, tags as dom
 from six.moves import urllib_parse as urlparse
 
 from tornado.escape import xhtml_escape
@@ -9,8 +12,6 @@ from DIRAC import rootPath, gLogger, S_OK, gConfig
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, asyncGen
-from DIRAC.Resources.IdProvider.OAuth2IdProvider import OAuth2IdProvider
-from DIRAC.FrameworkSystem.private.authorization.utils.Tokens import OAuth2Token
 
 
 class RootHandler(WebHandler):
@@ -19,12 +20,24 @@ class RootHandler(WebHandler):
   LOCATION = "/"
 
   def web_changeGroup(self):
-    to = self.get_argument("to")
-    self.__change(group=to)
+    try:
+      to = self.request.arguments['to'][-1]
+    except KeyError:
+      raise WErr(400, "Missing 'to' argument")
+    return self.__change(group=to)
+
+  def finish_changeGroup(self):
+    self.redirect(self.result)
 
   def web_changeSetup(self):
-    to = self.get_argument("to")
-    self.__change(setup=to)
+    try:
+      to = self.request.arguments['to'][-1]
+    except KeyError:
+      raise WErr(400, "Missing 'to' argument")
+    return self.__change(setup=to)
+
+  def finish_changeSetup(self):
+    self.redirect(self.result)
 
   def __change(self, setup=None, group=None):
     if not setup:
@@ -36,7 +49,7 @@ class RootHandler(WebHandler):
       o = urlparse.urlparse(self.request.headers['Referer'])
       qs = '/?%s' % o.query
     url = [Conf.rootURL().strip("/"), "s:%s" % setup, "g:%s" % group]
-    self.redirect("/%s%s" % ("/".join(url), qs))
+    return "/%s%s" % ("/".join(url), qs)
 
   def web_getConfigData(self):
     return self.getSessionData()
@@ -53,6 +66,8 @@ class RootHandler(WebHandler):
           cli = result['Value']
           cli.token = token
           cli.revokeToken(token['refresh_token'])
+
+  def finish_logout(self):
     self.clear_cookie('session_id')
     self.set_cookie('authGrant', 'Visitor')
     self.redirect('/DIRAC')
@@ -62,15 +77,18 @@ class RootHandler(WebHandler):
     """
     result = self._idps.getIdProvider('WebAppDIRAC')
     if not result['OK']:
-      return result
+      raise WErr(500, self.result['Message'])
     cli = result['Value']
     provider = self.get_argument('provider')
     if provider:
       cli.metadata['authorization_endpoint'] = '%s/%s' % (cli.get_metadata('authorization_endpoint'), provider)
-    uri, state, session = cli.submitNewSession()
+    return cli.submitNewSession()
+
+  def finish_login(self):
+    uri, state, session = self.result
 
     # Save authorisation session
-    session.update(dict(state=state, provider=provider, next=self.get_argument('next', '/DIRAC')))
+    session.update(dict(state=state, provider=self.get_argument('provider'), next=self.get_argument('next', '/DIRAC')))
     self.set_secure_cookie('webauth_session', json.dumps(session), secure=True, httponly=True)
 
     # Redirect to authorization server
@@ -91,16 +109,24 @@ class RootHandler(WebHandler):
     # Parse response
     authSession = json.loads(self.get_secure_cookie('webauth_session'))
 
-    token = cli.fetchToken(authorization_response=self.request.uri, code_verifier=authSession.get('code_verifier'))
-    
-    # Remove authorisation session
+    result = cli.fetchToken(authorization_response=self.request.uri, code_verifier=authSession.get('code_verifier'))
+    if not result['OK']:
+      return result
+    token = result['Value']
+
+    # Remove authorisation session.
     self.clear_cookie('webauth_session')
 
     # Create session to work through portal
+    self.log.debug('Tokens received:\n', pprint.pformat(token))
     self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True)
     self.set_cookie('authGrant', 'Session')
 
-    group = token.groups[0]
+    result = cli.researchGroup()
+    if not result['OK']:
+      return result
+    group = result['Value'].get('group')
+
     url = '/'.join([Conf.rootURL().strip("/"), "s:%s" % self.getUserSetup(), "g:%s" % group])
     nextURL = "/%s/?%s" % (url, urlparse.urlparse(authSession['next']).query)
     # Save token and go to main page
@@ -124,7 +150,7 @@ class RootHandler(WebHandler):
           </script>
         </body>
       </html>''')
-    return t.generate(next=nextURL, access_token=token.access_token)
+    return t.generate(next=nextURL, access_token=token['access_token'])
 
   def web_index(self):
     # Render base template
@@ -151,11 +177,8 @@ class RootHandler(WebHandler):
     if "open_app" in self.request.arguments and len(self.get_argument("open_app")) > 0:
       open_app = xhtml_escape(self.get_argument("open_app").strip())
 
-    icon = data['baseURL'] + Conf.getIcon()
-    background = data['baseURL'] + Conf.getBackgroud()
-    logo = data['baseURL'] + Conf.getLogo()
-    welcomeFile = Conf.getWelcome()
     welcome = ''
+    welcomeFile = Conf.getWelcome()
     if welcomeFile:
       try:
         with open(welcomeFile, 'r') as f:
@@ -163,12 +186,19 @@ class RootHandler(WebHandler):
       except BaseException:
         gLogger.warn('Welcome page not found here: %s' % welcomeFile)
 
-    level = str(gLogger.getLevel()).lower()
-    self.render("root.tpl", iconUrl=icon, base_url=data['baseURL'], _dev=Conf.devMode(),
+    return dict(base_url=data['baseURL'],
+                logo=data['baseURL'] + Conf.getLogo(),
+                iconUrl=data['baseURL'] + Conf.getIcon(),
+                backgroundImage=data['baseURL'] + Conf.getBackgroud(),
+                debug_level=str(gLogger.getLevel()).lower(),
+                _dev=Conf.devMode(),
                 ext_version=data['extVersion'], url_state=url_state,
                 extensions=data['extensions'], auth_client_settings=data['configuration']['AuthorizationClient'],
                 credentials=data['user'], title=Conf.getTitle(),
                 theme=theme_name, root_url=Conf.rootURL(), view=view_name,
-                open_app=open_app, debug_level=level, welcome=welcome,
-                backgroundImage=background, logo=logo, bugReportURL=Conf.bugReportURL(),
+                open_app=open_app, welcome=welcome,
+                bugReportURL=Conf.bugReportURL(),
                 http_port=Conf.HTTPPort(), https_port=Conf.HTTPSPort())
+
+  def finish_index(self):
+    self.render("root.tpl", **self.result)
