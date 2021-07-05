@@ -185,7 +185,7 @@ class RootHandler(WebHandler):
                 debug_level=str(gLogger.getLevel()).lower(),
                 _dev=Conf.devMode(),
                 ext_version=data['extVersion'], url_state=url_state,
-                extensions=data['extensions'], auth_client_settings=data['configuration']['AuthorizationClient'],
+                extensions=data['extensions'], auth_client_settings={},  # data['configuration']['AuthorizationClient'],
                 credentials=data['user'], title=Conf.getTitle(),
                 theme=theme_name, root_url=Conf.rootURL(), view=view_name,
                 open_app=open_app, welcome=welcome,
