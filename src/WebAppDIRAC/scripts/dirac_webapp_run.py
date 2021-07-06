@@ -116,14 +116,14 @@ def main():
                           "Specify path(s) to handlers, for ex. 'OAuthDIRAC.FrameworkSystem.Utilities'",
                           setHandlers)
 
-  if six.PY3 and gConfig.getOption("/WebApp/IgnoreVersionCheck").get('Value', '').lower() not in ['yes', 'true']:
-    _checkDIRACVersion()
-
   result = localCfg.loadUserData()
   if not result['OK']:
     gLogger.initialize("WebApp", "/")
     gLogger.fatal("There were errors when loading configuration", result['Message'])
     sys.exit(1)
+
+  if six.PY3 and gConfig.getOption("/WebApp/IgnoreVersionCheck").get('Value', '').lower() not in ['yes', 'true']:
+    _checkDIRACVersion()
 
   result = gConfig.getOption("/WebApp/StaticResourceLinkDir")
   if result["OK"]:
