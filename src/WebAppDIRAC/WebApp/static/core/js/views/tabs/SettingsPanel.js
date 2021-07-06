@@ -102,9 +102,12 @@ Ext.define("Ext.dirac.views.tabs.SettingsPanel", {
 
   addAuthsButton: function() {
     var me = this;
+    var oListAuth = [];
 
     // Generate list of login buttons
-    var oListAuth = Object.keys(GLOBAL.APP.configData.configuration.TypeAuths);
+    if (GLOBAL.APP.configData.configuration.TypeAuths) {
+      oListAuth = Object.keys(GLOBAL.APP.configData.configuration.TypeAuths);
+    };
     var currentAuth = Ext.util.Cookies.get("authGrant");
     if (currentAuth == null) {
       currentAuth = "Certificate";

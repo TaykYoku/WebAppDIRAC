@@ -89,8 +89,9 @@ def _checkDIRACVersion():
 
 @DIRACScript()
 def main():
-  if six.PY3:
-    _checkDIRACVersion()
+  def ignoreIncompatible(op):
+    gConfig.setOptionValue("/WebApp/IgnoreVersionCheck", "True")
+    return S_OK()
 
   def disableDevMode(op):
     gConfig.setOptionValue("/WebApp/DevelopMode", "False")
@@ -109,10 +110,14 @@ def main():
   localCfg.addDefaultEntry("/DIRAC/Security/UseServerCertificate", "yes")
   localCfg.addDefaultEntry("LogLevel", "INFO")
   localCfg.addDefaultEntry("LogColor", True)
+  localCfg.registerCmdOpt("i", "--ignore-incompatible", "Ignore incompatible version.", )
   localCfg.registerCmdOpt("p", "production", "Enable production mode", disableDevMode)
   localCfg.registerCmdOpt("S:", "set_handlers_location=",
                           "Specify path(s) to handlers, for ex. 'OAuthDIRAC.FrameworkSystem.Utilities'",
                           setHandlers)
+
+  if six.PY3 and gConfig.getOption("/WebApp/IgnoreVersionCheck").get('Value', '').lower() not in ['yes', 'true']:
+    _checkDIRACVersion()
 
   result = localCfg.loadUserData()
   if not result['OK']:

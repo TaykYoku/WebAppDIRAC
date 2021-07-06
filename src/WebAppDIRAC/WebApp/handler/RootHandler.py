@@ -178,19 +178,26 @@ class RootHandler(WebHandler):
       except BaseException:
         gLogger.warn('Welcome page not found here: %s' % welcomeFile)
 
-    return dict(base_url=data['baseURL'],
+    return dict(_dev=Conf.devMode(),
                 logo=data['baseURL'] + Conf.getLogo(),
+                view=view_name,
+                theme=theme_name,
+                title=Conf.getTitle(),
+                welcome=welcome,
                 iconUrl=data['baseURL'] + Conf.getIcon(),
-                backgroundImage=data['baseURL'] + Conf.getBackgroud(),
+                open_app=open_app,
+                base_url=data['baseURL'],
+                root_url=Conf.rootURL(),
+                url_state=url_state,
+                http_port=Conf.HTTPPort(),
+                https_port=Conf.HTTPSPort(),
+                extensions=data['extensions'],
+                credentials=data['user'],
+                ext_version=data['extVersion'],
                 debug_level=str(gLogger.getLevel()).lower(),
-                _dev=Conf.devMode(),
-                ext_version=data['extVersion'], url_state=url_state,
-                extensions=data['extensions'], auth_client_settings={},  # data['configuration']['AuthorizationClient'],
-                credentials=data['user'], title=Conf.getTitle(),
-                theme=theme_name, root_url=Conf.rootURL(), view=view_name,
-                open_app=open_app, welcome=welcome,
                 bugReportURL=Conf.bugReportURL(),
-                http_port=Conf.HTTPPort(), https_port=Conf.HTTPSPort())
+                backgroundImage=data['baseURL'] + Conf.getBackgroud(),
+                auth_client_settings=data['configuration'].get('AuthorizationClient', {}))
 
   def finish_index(self):
     self.render("root.tpl", **self.result)
