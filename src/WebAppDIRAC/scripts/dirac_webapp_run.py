@@ -110,7 +110,7 @@ def main():
   localCfg.addDefaultEntry("/DIRAC/Security/UseServerCertificate", "yes")
   localCfg.addDefaultEntry("LogLevel", "INFO")
   localCfg.addDefaultEntry("LogColor", True)
-  localCfg.registerCmdOpt("i", "--ignore-incompatible", "Ignore incompatible version.", )
+  localCfg.registerCmdOpt("i", "--ignore-incompatible", "Ignore incompatible version.", ignoreIncompatible)
   localCfg.registerCmdOpt("p", "production", "Enable production mode", disableDevMode)
   localCfg.registerCmdOpt("S:", "set_handlers_location=",
                           "Specify path(s) to handlers, for ex. 'OAuthDIRAC.FrameworkSystem.Utilities'",
