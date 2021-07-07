@@ -71,6 +71,7 @@ class RootHandler(WebHandler):
     if not result['OK']:
       raise WErr(500, result['Message'])
     cli = result['Value']
+    cli.scope = ''
     provider = self.get_argument('provider')
     if provider:
       cli.metadata['authorization_endpoint'] = '%s/%s' % (cli.get_metadata('authorization_endpoint'), provider)
