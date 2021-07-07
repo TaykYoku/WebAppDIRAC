@@ -143,7 +143,7 @@ class RootHandler(WebHandler):
           </script>
         </body>
       </html>''')
-    return t.generate(next=nextURL, access_token=token['access_token'])
+    return t.generate(next=nextURL, access_token=token['access_token']).decode()
 
   def web_index(self):
     # Render base template
