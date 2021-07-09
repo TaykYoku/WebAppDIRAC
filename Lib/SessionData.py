@@ -9,6 +9,8 @@ from DIRAC.Core.Utilities import List
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers import CSGlobals
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+
 
 from WebAppDIRAC.Lib import Conf
 
@@ -20,10 +22,6 @@ class SessionData(Operations):
   __groupMenu = {}
   __extensions = []
   __extVersion = "ext-6.2.0"
-
-  # Operations settings
-  _basePath = '/WebApp'
-  _useBasePathAsDefault = True
 
   @classmethod
   def setHandlers(cls, handlers):
@@ -48,7 +46,7 @@ class SessionData(Operations):
         :param str setup: requested setup
     """
     self.__credDict = credDict
-    super(SessionData, self).__init__(group=credDict.get("group", ""), setup=setup)
+    super(SessionData, self).__init__(group=credDict.get("group"), setup=setup, mainSection='WebApp')
 
   def __isGroupAuthApp(self, appLoc):
     """ The method checks if the application is authorized for a certain user group
@@ -78,7 +76,7 @@ class SessionData(Operations):
     """
     # Calculate schema
     schema = []
-    result = self._getCFG(os.path.join("Schema", path))
+    result = self._getCFG(os.path.join(self.getValue("UseSchema", "Schema"), path))
     if not result['OK']:
       return schema
     cfg = result['Value']
@@ -102,9 +100,10 @@ class SessionData(Operations):
 
         :return: list
     """
-    if self._group not in self.__groupMenu or self._cacheExpired():
-      self.__groupMenu[self._group] = self.__generateSchema()
-    return self.__groupMenu[self._group]
+    key = (self._group, self._setup)
+    if key not in self.__groupMenu or self._cacheExpired():
+      self.__groupMenu[key] = self.__generateSchema()
+    return self.__groupMenu[key]
 
   @classmethod
   def getExtJSVersion(cls):
