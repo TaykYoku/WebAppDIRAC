@@ -261,7 +261,7 @@ class WebHandler(tornado.web.RequestHandler):
         :return: str
     """
     return self.getSessionData('configuration').get("Logo", "/static/core/img/icons/system/_logo_waiting.gif")
-  
+
   def getWelcome(self):
     """ Get welcome
 

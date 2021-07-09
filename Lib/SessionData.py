@@ -148,4 +148,4 @@ class SessionData(Operations):
                "s:%s" % data['setup'],
                "g:%s" % self.__credDict.get('group', '')]
     data['baseURL'] = "/%s" % "/".join(baseURL)
-    return data[option] if option else data
+    return data[opt] if opt else data
