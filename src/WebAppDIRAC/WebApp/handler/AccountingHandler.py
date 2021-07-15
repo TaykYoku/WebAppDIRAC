@@ -187,10 +187,6 @@ class AccountingHandler(WebHandler):
     # Prevent directory traversal
     plotImageFile = os.path.normpath('/' + plotImageFile).lstrip('/')
 
-#    if not plotImageFile.endswith(".png"):
-#      callback = {"success": "false", "error": "Not a valid image!"}
-#      self.finish(callback)
-#      return
     transferClient = TransferClient("Accounting/ReportGenerator")
     tempFile = tempfile.TemporaryFile()
     retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
@@ -200,14 +196,7 @@ class AccountingHandler(WebHandler):
       return
     tempFile.seek(0)
     data = tempFile.read()
-    self.set_header('Content-type', 'image/png')
-    self.set_header('Content-Disposition', 'attachment; filename="%s.png"' % md5(plotImageFile.encode('utf-8')).hexdigest())
-    self.set_header('Content-Length', len(data))
-    self.set_header('Content-Transfer-Encoding', 'Binary')
-    #self.set_header( 'Cache-Control', "no-cache, no-store, must-revalidate, max-age=0" )
-    #self.set_header( 'Pragma', "no-cache" )
-    #self.set_header( 'Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ) )
-    self.finish(data)
+    self.finishWithImage(data, plotImageFile)
 
   @asyncGen
   def web_getPlotImgFromCache(self):
@@ -252,15 +241,7 @@ class AccountingHandler(WebHandler):
       return
     tempFile.seek(0)
     data = tempFile.read()
-    self.set_header('Content-type', 'image/png')
-    self.set_header('Content-Disposition', 'attachment; filename="%s.png"' % md5(plotImageFile.encode('utf-8')).hexdigest())
-    self.set_header('Content-Length', len(data))
-    self.set_header('Content-Transfer-Encoding', 'Binary')
-    self.set_header('Cache-Control', "no-cache, no-store, must-revalidate, max-age=0")
-    self.set_header('Pragma', "no-cache")
-    self.set_header(
-        'Expires', (datetime.datetime.utcnow() - datetime.timedelta(minutes=-10)).strftime("%d %b %Y %H:%M:%S GMT"))
-    self.finish(data)
+    self.finishWithImage(data, plotImageFile, disableCaching=True)
 
   @asyncGen
   def web_getCsvPlotData(self):

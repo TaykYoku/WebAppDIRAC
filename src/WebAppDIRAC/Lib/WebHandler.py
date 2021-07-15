@@ -4,7 +4,6 @@ import json
 import datetime
 import requests
 import functools
-import tempfile
 import traceback
 from hashlib import md5
 
@@ -19,7 +18,6 @@ from DIRAC.Core.Security import Properties
 from DIRAC.Core.Security.X509Chain import X509Chain  # pylint: disable=import-error
 from DIRAC.Core.DISET.AuthManager import AuthManager
 from DIRAC.Core.DISET.ThreadConfig import ThreadConfig
-from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities.JEncode import DATETIME_DEFAULT_FORMAT
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUsernameForID, getDNForUsername
