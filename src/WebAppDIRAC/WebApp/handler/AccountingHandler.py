@@ -192,7 +192,7 @@ class AccountingHandler(WebHandler):
 #      self.finish(callback)
 #      return
     transferClient = TransferClient("Accounting/ReportGenerator")
-    tempFile = tempfile.TemporaryFile(encoding='utf-8')
+    tempFile = tempfile.TemporaryFile(mode='w+', encoding='utf-8')
     retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
@@ -244,7 +244,7 @@ class AccountingHandler(WebHandler):
     plotImageFile = retVal['Value']['plot']
 
     transferClient = TransferClient("Accounting/ReportGenerator")
-    tempFile = tempfile.TemporaryFile(encoding='utf-8')
+    tempFile = tempfile.TemporaryFile(mode='w+', encoding='utf-8')
     retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
     if not retVal['OK']:
       callback = {"success": "false", "error": retVal['Message']}
