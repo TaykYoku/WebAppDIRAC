@@ -52,7 +52,7 @@ class AccountingHandler(WebHandler):
   @asyncGen
   def web_getSelectionData(self):
     callback = {}
-    typeName = self.get_argument("type")
+    typeName = self.request.arguments["type"][0]
     # Get unique key values
     retVal = yield self.threadTask(self.__getUniqueKeyValues, typeName)
     if not retVal['OK']:
@@ -85,14 +85,18 @@ class AccountingHandler(WebHandler):
     self.finish({"success": "true", "result": callback})
 
   def __parseFormParams(self):
+    params = self.request.arguments
+
     pD = {}
     extraParams = {}
     pinDates = False
 
-    for name in self.request.arguments:
+    for name in params:
       if name.find("_") != 0:
         continue
-      pD[name[1:]] = self.get_argument(name)
+      value = params[name][0]
+      name = name[1:]
+      pD[name] = str(value)
 
     # Personalized title?
     if 'plotTitle' in pD:
@@ -183,7 +187,7 @@ class AccountingHandler(WebHandler):
       callback = {"success": "false", "error": "Maybe you forgot the file?"}
       self.finish(callback)
       return
-    plotImageFile = self.get_argument("file")
+    plotImageFile = str(self.request.arguments['file'][0])
     # Prevent directory traversal
     plotImageFile = os.path.normpath('/' + plotImageFile).lstrip('/')
 
@@ -191,6 +195,7 @@ class AccountingHandler(WebHandler):
 #      callback = {"success": "false", "error": "Not a valid image!"}
 #      self.finish(callback)
 #      return
+
     transferClient = TransferClient("Accounting/ReportGenerator")
     tempFile = tempfile.TemporaryFile()
     retVal = yield self.threadTask(transferClient.receiveFile, tempFile, plotImageFile)
@@ -200,7 +205,14 @@ class AccountingHandler(WebHandler):
       return
     tempFile.seek(0)
     data = tempFile.read()
-    self.finishWithImage(data, plotImageFile)
+    self.set_header('Content-type', 'image/png')
+    self.set_header('Content-Disposition', 'attachment; filename="%s.png"' % md5(plotImageFile).hexdigest())
+    self.set_header('Content-Length', len(data))
+    self.set_header('Content-Transfer-Encoding', 'Binary')
+    #self.set_header( 'Cache-Control', "no-cache, no-store, must-revalidate, max-age=0" )
+    #self.set_header( 'Pragma', "no-cache" )
+    #self.set_header( 'Expires', ( datetime.datetime.utcnow() - datetime.timedelta( minutes = -10 ) ).strftime( "%d %b %Y %H:%M:%S GMT" ) )
+    self.finish(data)
 
   @asyncGen
   def web_getPlotImgFromCache(self):
@@ -212,7 +224,7 @@ class AccountingHandler(WebHandler):
       callback = {"success": "false", "error": "Maybe you forgot the file?"}
       self.finish(callback)
       return
-    plotImageFile = self.get_argument("file")
+    plotImageFile = str(self.request.arguments['file'][0])
 
     retVal = extractRequestFromFileId(plotImageFile)
     if not retVal['OK']:
@@ -245,7 +257,15 @@ class AccountingHandler(WebHandler):
       return
     tempFile.seek(0)
     data = tempFile.read()
-    self.finishWithImage(data, plotImageFile, disableCaching=True)
+    self.set_header('Content-type', 'image/png')
+    self.set_header('Content-Disposition', 'attachment; filename="%s.png"' % md5(plotImageFile).hexdigest())
+    self.set_header('Content-Length', len(data))
+    self.set_header('Content-Transfer-Encoding', 'Binary')
+    self.set_header('Cache-Control', "no-cache, no-store, must-revalidate, max-age=0")
+    self.set_header('Pragma', "no-cache")
+    self.set_header(
+        'Expires', (datetime.datetime.utcnow() - datetime.timedelta(minutes=-10)).strftime("%d %b %Y %H:%M:%S GMT"))
+    self.finish(data)
 
   @asyncGen
   def web_getCsvPlotData(self):
