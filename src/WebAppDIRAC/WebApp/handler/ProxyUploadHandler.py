@@ -84,19 +84,19 @@ class ProxyUploadHandler(WebHandler):
         tmp = "".join(random.choice(string.ascii_letters) for x in range(10))
         descriptionDict[i] = os.path.join(storePath, tmp)
 
-      with open(descriptionDict["name"], "wb") as tmpFile:
-        tmpFile.write(fileObject.body)
+      with open(descriptionDict["name"], "w") as tmpFile:
+        tmpFile.write(fileObject.body.decode())
 
-      with open(descriptionDict["p12"], "wb") as tmpFile:
-        tmpFile.write(fileObject.p12)
+      with open(descriptionDict["p12"], "w") as tmpFile:
+        tmpFile.write(fileObject.p12.decode())
 
       pemPassword = "".join(random.choice(string.ascii_letters) for x in range(10))
 
-      with open(descriptionDict["pem"], "wb") as tmpFile:
-        tmpFile.write(pemPassword)
+      with open(descriptionDict["pem"], "w") as tmpFile:
+        tmpFile.write(pemPassword.decode())
     except Exception as x:
       shutil.rmtree(storePath)
-      gLogger.error("Exception: %s" % str(x))
+      gLogger.exception(x)
       error = "An exception has happen '%s'" % str(x)
       error = error + disclaimer
       gLogger.debug("Service response: %s" % error)
