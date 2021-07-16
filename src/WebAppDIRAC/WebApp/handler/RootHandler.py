@@ -113,12 +113,14 @@ class RootHandler(WebHandler):
 
     result = self._idps.getIdProvider('DIRACWeb')
     if not result['OK']:
-      return resp.finish(t.generate(next=authSession['next'], access_token='', message=result['Message']).decode())
+      resp.finish(t.generate(next=authSession['next'], access_token='', message=result['Message']).decode())
+      return resp
     cli = result['Value']
 
     result = cli.fetchToken(authorization_response=self.request.uri, code_verifier=authSession.get('code_verifier'))
     if not result['OK']:
-      return resp.finish(t.generate(next=authSession['next'], access_token='', message=result['Message']).decode())
+      resp.finish(t.generate(next=authSession['next'], access_token='', message=result['Message']).decode())
+      return resp
     token = result['Value']
 
     # Remove authorisation session.
@@ -131,7 +133,8 @@ class RootHandler(WebHandler):
 
     result = cli.researchGroup()
     if not result['OK']:
-      return resp(t.generate(next=authSession['next'], access_token='', message=result['Message']).decode())
+      resp.finish(t.generate(next=authSession['next'], access_token='', message=result['Message']).decode())
+      return resp
     group = result['Value'].get('group')
 
     url = '/'.join([Conf.rootURL().strip("/"), "s:%s" % self.getUserSetup(), "g:%s" % group])
@@ -143,8 +146,8 @@ class RootHandler(WebHandler):
     #   dom.script("sessionStorage.setItem('access_token','%s');window.location='%s'" % (access_token, nextURL),
     #              type="text/javascript")
     # return template.Template(html.render()).generate()
-    return resp.finish(t.generate(next=nextURL, access_token=token['access_token'],
-                                  message='Authorization is done.').decode())
+    resp.finish(t.generate(next=nextURL, access_token=token['access_token'], message='Authorization is done').decode())
+    return resp
 
   def web_index(self):
     # Render base template
