@@ -9,6 +9,7 @@ from tornado.escape import xhtml_escape
 from tornado import template
 
 from DIRAC import rootPath, gLogger, S_OK, gConfig
+from DIRAC.Core.Tornado.Server.private.BaseRequestHandler import TornadoResponse
 
 from WebAppDIRAC.Lib import Conf
 from WebAppDIRAC.Lib.WebHandler import _WebHandler as WebHandler, WErr, asyncGen
@@ -91,33 +92,46 @@ class RootHandler(WebHandler):
   def web_loginComplete(self):
     """ Finishing authoriation flow
     """
+    t = template.Template('''<!DOCTYPE html>
+    <html>
+      <head>
+        <title>Authentication</title>
+        <meta charset="utf-8" />
+      </head>
+      <body>
+        {{message}}
+        <script>
+          sessionStorage.setItem("access_token", "{{access_token}}");
+          window.location = "{{next}}";
+        </script>
+      </body>
+    </html>''')
+    resp = TornadoResponse()
     code = self.get_argument('code')
     state = self.get_argument('state')
+    authSession = json.loads(self.get_secure_cookie('webauth_session'))
 
     result = self._idps.getIdProvider('DIRACWeb')
     if not result['OK']:
-      return result
+      return resp(t.generate(next=authSession['next'], access_token=None, message=result['Message']).decode())
     cli = result['Value']
-
-    # Parse response
-    authSession = json.loads(self.get_secure_cookie('webauth_session'))
 
     result = cli.fetchToken(authorization_response=self.request.uri, code_verifier=authSession.get('code_verifier'))
     if not result['OK']:
-      return result
+      return resp(t.generate(next=authSession['next'], access_token=None, message=result['Message']).decode())
     token = result['Value']
 
     # Remove authorisation session.
-    self.clear_cookie('webauth_session')
+    resp.clear_cookie('webauth_session')
 
     # Create session to work through portal
     self.log.debug('Tokens received:\n', pprint.pformat(token))
-    self.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True)
-    self.set_cookie('authGrant', 'Session')
+    resp.set_secure_cookie('session_id', json.dumps(dict(token)), secure=True, httponly=True)
+    resp.set_cookie('authGrant', 'Session')
 
     result = cli.researchGroup()
     if not result['OK']:
-      return result
+      return resp(t.generate(next=authSession['next'], access_token=None, message=result['Message']).decode())
     group = result['Value'].get('group')
 
     url = '/'.join([Conf.rootURL().strip("/"), "s:%s" % self.getUserSetup(), "g:%s" % group])
@@ -129,21 +143,7 @@ class RootHandler(WebHandler):
     #   dom.script("sessionStorage.setItem('access_token','%s');window.location='%s'" % (access_token, nextURL),
     #              type="text/javascript")
     # return template.Template(html.render()).generate()
-    t = template.Template('''<!DOCTYPE html>
-      <html>
-        <head>
-          <title>Authentication</title>
-          <meta charset="utf-8" />
-        </head>
-        <body>
-          Authorization is done.
-          <script>
-            sessionStorage.setItem("access_token", "{{access_token}}");
-            window.location = "{{next}}";
-          </script>
-        </body>
-      </html>''')
-    return t.generate(next=nextURL, access_token=token['access_token']).decode()
+    return resp(t.generate(next=nextURL, access_token=token['access_token'], message='Authorization is done').decode())
 
   def web_index(self):
     # Render base template

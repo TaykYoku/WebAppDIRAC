@@ -68,6 +68,7 @@ def asyncWithCallback(method):
 def asyncGen(method):
   return gen.coroutine(method)
 
+
 def defaultEncoder(data):
   """ Encode
 
